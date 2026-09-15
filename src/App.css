@@ -1,0 +1,184 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Mulish:wght@100..800&display=swap");
+@import url("typography.css");
+@theme {
+	--color-primary: #11ab7c;
+	--color-primary-light: #3c4043;
+	--color-primary-dark: #101010;
+	--color-primary-medium: #5f6368;
+	--color-border: #d3ddea;
+}
+* {
+	font-family: "Just Sans", sans-serif;
+}
+
+.inter {
+	font-family: Inter, sans-serif;
+}
+
+.sora {
+	font-family: Sora, sans-serif;
+}
+
+.mulish {
+	font-family: Mulish, sans-serif;
+}
+
+.JUST-Sans {
+	font-family: "Just Sans", sans-serif !important;
+}
+
+.noscroll {
+	overflow: hidden; /* Hides the scrollbar */
+	overflow-y: scroll; /* Allows vertical scrolling */
+}
+
+/* For webkit browsers (Chrome, Safari) */
+.noscroll::-webkit-scrollbar {
+	display: none; /* Hides the scrollbar */
+}
+
+/* .custom-overlay {
+	@apply bg-da-blue-600 bg-opacity-40;
+} */
+/* For Firefox */
+.noscroll {
+	scrollbar-width: none; /* Hides the scrollbar */
+}
+
+/* For Edge and IE */
+.noscroll {
+	-ms-overflow-style: none; /* Hides the scrollbar */
+}
+html {
+	scroll-behavior: smooth;
+}
+
+@keyframes wiggle {
+	0%,
+	100% {
+		transform: rotate(-15deg);
+	}
+	50% {
+		transform: rotate(15deg);
+	}
+}
+
+.animate-wiggle-infinite {
+	animation: wiggle 1s ease-in-out infinite;
+}
+.noscroll {
+	overflow: hidden; /* Hides the scrollbar */
+	overflow-y: scroll; /* Allows vertical scrolling */
+}
+
+/* For webkit browsers (Chrome, Safari) */
+.noscroll::-webkit-scrollbar {
+	display: none; /* Hides the scrollbar */
+}
+
+/* For Firefox */
+.noscroll {
+	scrollbar-width: none; /* Hides the scrollbar */
+}
+
+/* For Edge and IE */
+.noscroll {
+	-ms-overflow-style: none; /* Hides the scrollbar */
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+::-webkit-scrollbar-track {
+	box-shadow: inset 0 0 5px #1c5d39;
+	border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+	background: #2a8c56;
+	border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: #1c5d39;
+}
+
+.noscroll::-webkit-scrollbar {
+	width: 0px;
+	height: 0px;
+}
+
+@media print {
+	body,
+	html {
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		padding: 0;
+	}
+
+	.print-container {
+		width: 100%;
+		height: 100vh;
+	}
+
+	.page-break {
+		page-break-before: always;
+	}
+}
+
+.printPage * {
+	font-family: "Microsoft San Serif" !important;
+}
+@media print {
+	.borderNonePrint {
+		border: none !important;
+	}
+	.hidden.printOnly {
+		display: block !important;
+	}
+	.flex.printOnlyNone {
+		display: none !important;
+	}
+	.text2Print {
+		font-size: 20px !important;
+	}
+	body {
+		font-size: 12px;
+	}
+	.page-break {
+		/* margin-top: 1rem; */
+		/* display: block; */
+		page-break-before: auto;
+		page-break-inside: avoid;
+	}
+}
+@page {
+	size: auto;
+	margin: 5mm 0;
+}
+
+.style-module_simpleStarRating__nWUxf svg {
+	display: inline !important;
+}
+
+/* Force mention list to show above input */
+.flex-1__suggestions {
+	position: absolute !important;
+	top: auto !important;
+	bottom: calc(100% + 10px) !important; /* pushes it above the input */
+	margin-top: 0 !important;
+	margin-bottom: 4px !important;
+	z-index: 50 !important;
+	background-color: white !important;
+	border-radius: 0.5rem;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mention {
+	@apply bg-[#B7CFFC] text-[#192252] hover:bg-[#92B2F8];
+}
+
+.trapezoid {
+ clip-path: polygon(0% 0, 80% 0, 70% 100%, 0 100%);
+}

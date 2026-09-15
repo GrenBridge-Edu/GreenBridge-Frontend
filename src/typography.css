@@ -1,0 +1,13 @@
+@font-face {
+	font-family: "JUST Sans";
+	font-style: normal;
+	font-weight: 300;
+	src: url("./assets/fonts/JUST\ Sans\ Regular.otf");
+}
+
+@font-face {
+	font-family: "JUST Sans";
+	font-style: normal;
+	font-weight: 700;
+	src: url("./assets/fonts/JUST\ Sans\ ExBold.otf");
+}
