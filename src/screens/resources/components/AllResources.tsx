@@ -46,13 +46,16 @@ const AllResources = () => {
 							<select
 								name="category"
 								className="pl-15 border bg-[#f7f7f7] w-full p-4 rounded-xl
-								focus:outline-none focus:ring-2 focus:ring-gray-300
-								text-[#3A3A3A] placeholder:text-[#3A3A3A]
-								focus:border-transparent border-gray-300 capitalize"
+									focus:outline-none focus:ring-2 focus:ring-gray-300
+									text-[#3A3A3A] placeholder:text-[#3A3A3A]
+									focus:border-transparent border-gray-300 capitalize"
 								value={category}
 								onChange={e => setCategory(e?.target?.value)}>
 								<option value="">Filter by Category</option>
-								{(categories || [])?.map((category: any, cdx: number) => (
+								{(categories && Array.isArray(categories)
+									? categories
+									: []
+								)?.map((category: any, cdx: number) => (
 									<option value={category} key={cdx}>
 										{category}
 									</option>
