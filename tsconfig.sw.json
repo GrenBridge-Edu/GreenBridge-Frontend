@@ -1,0 +1,12 @@
+// tsconfig.sw.json — new, separate config just for the service worker
+{
+	"compilerOptions": {
+		"lib": ["ES2023", "WebWorker"],
+		"target": "es2023",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"skipLibCheck": true
+	},
+	"include": ["src/sw.ts"]
+}

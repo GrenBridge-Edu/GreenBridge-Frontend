@@ -1,59 +1,71 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * PageRender — file-based routing engine
+ *
+ * Role → folder mapping:
+ *   "pages"   → src/pages/**   (authenticated app routes)
+ *   "screens" → src/screens/** (public / guest routes)
+
+ * Folders listed in EXCLUDED are skipped (components, hooks, utils, etc.)
+ * Component instances are cached to prevent remounting on re-renders.
+ */
+
 import React from "react";
 
-export const USER_ROLES = ["screens", "admin", "superadmin"] as const;
-
+export const USER_ROLES = ["screens"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
 interface User {
 	role: UserRole;
 }
 
-const EXCLUDED_FOLDERS = ["components", "assets", "utils", "common"];
+const EXCLUDED = [
+	"components",
+	"assets",
+	"utils",
+	"common",
+	"hooks",
+	"types",
+	"_",
+	"data",
+];
 
-const ALL_ROUTE_MODULES = import.meta.glob<{
-	default: React.ComponentType<any>;
-}>("/src/**/*.{js,jsx,ts,tsx}");
+// Vite resolves all source files at build time
+const ALL_MODULES = import.meta.glob<{ default: React.ComponentType<any> }>(
+  "/src/**/*.{js,jsx,ts,tsx}",
+);
 
-const isInExcludedFolder = (filePath: string) => {
-	return EXCLUDED_FOLDERS.some(folder =>
-		new RegExp(`/(${folder})/`).test(filePath)
+const isExcluded = (path: string) =>
+	EXCLUDED.some(f => new RegExp(`/(${f})/`).test(path)) ||
+	// Exclude shared barrel files (auth.screens.tsx, chats.pages.tsx, etc.)
+	/\/[a-z]+\.(screens|pages)\.(tsx|ts|js|jsx)$/.test(path);
+
+const filterModules = (role: UserRole) =>
+	Object.fromEntries(
+		Object.entries(ALL_MODULES).filter(
+			([p]) => p.startsWith(`/src/${role}/`) && !isExcluded(p),
+		),
 	);
-};
 
-const filterModules = (role: UserRole) => {
-	return Object.fromEntries(
-		Object.entries(ALL_ROUTE_MODULES).filter(
-			([path]) => path.startsWith(`/src/${role}/`) && !isInExcludedFolder(path)
-		)
-	);
-};
-
-const getRouteGlobsByUser = (user: User) => {
-	const role = USER_ROLES?.includes(user?.role ?? "") ? user!.role : "screens";
-
-	return filterModules(role);
-};
-
-// cache to prevent remounting React.lazy components
 const componentCache = new Map<
 	string,
 	React.LazyExoticComponent<React.ComponentType<any>>
 >();
 
 export const getRoutesForUser = (user: User) => {
-	const modules = getRouteGlobsByUser(user);
+  const role = USER_ROLES.includes(user?.role as any) ? user.role : "screens";
+	const modules = filterModules(role);
 
-	return Object.entries(modules).map(([filePath, loader]) => {
+  return Object.entries(modules).map(([filePath, loader]) => {
 		if (!componentCache.has(filePath)) {
 			componentCache.set(filePath, React.lazy(loader));
 		}
 
 		const routePath = filePath
-			?.replace(new RegExp(`^\\/src\\/(${USER_ROLES.join("|")})`), "")
-			?.replace(/\.(js|jsx|ts|tsx)$/, "")
-			?.replace(/\/index$/, "")
-			?.replace(/\[([^\]]+)\]/g, ":$1");
+			.replace(new RegExp(`^\\/src\\/(${USER_ROLES.join("|")})`), "")
+			.replace(/\.(js|jsx|ts|tsx)$/, "")
+			.replace(/\/index$/, "")
+			.replace(/\[([^\]]+)\]/g, ":$1");
 
 		return {
 			path: routePath || "/",

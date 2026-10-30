@@ -1,345 +1,480 @@
-import { useEffect, useState } from "react";
-import PrimaryBtn from "../../../components/button";
-import Divider from "@mui/material/Divider";
-import { apiCall, nairaSignNeutral } from "../../../data/useFetcher";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
-import programBG from "../../../assets/images/programBG.jpg";
-import homeProgram1 from "../../../assets/images/homeProgram1.png";
-import homeProgram2 from "../../../assets/images/homeProgram2.png";
-import homeProgram3 from "../../../assets/images/resourcesBG.jpg";
-import homeProgram4 from "../../../assets/images/program1.png";
-import homeProgram5 from "../../../assets/images/homeBG1.jpg";
-import pastProgram1 from "../../../assets/images/programP1.png";
-import pastProgram2 from "../../../assets/images/programP2.png";
-import pastProgram3 from "../../../assets/images/homeResources5.png";
-import pastProgram4 from "../../../assets/images/programP4.png";
-import { useProgramsStore } from "../../../data/stores/loggerStore";
-import { GeneralDonationModal } from "../../../components/modals/DonationModal";
 
-export const programs = [
+import { useInfiniteProgramsQuery } from "../../../data/queries/homeContent.queries";
+import type { Program } from "../../../data/endpoints/programs.api";
+
+import { asText, formatCurrency } from "../../home/data/homeContent";
+import { useProgramsSection } from "../data/programsContent";
+import { Button } from "../../../components/ui";
+import DonationModal from "../../../components/modals/DonationModal";
+import Reveal from "../../../components/shared/Reveal";
+
+const DEFAULTS = {
+	title: "Our Programs",
+	description:
+		"Discover the projects making a difference in communities through education, innovation, and sustainable development.",
+};
+
+const programImages = [
+	"/images/homeProgram1.png",
+	"/images/homeProgram2.png",
+	"/images/resourcesBG.jpg",
+	"/images/program1.png",
+	"/images/homeBG1.jpg",
+];
+
+const pastProgramImages = [
+	"/images/programP1.png",
+	"/images/programP2.png",
+	"/images/homeResources5.png",
+	"/images/programP4.png",
+];
+
+type DisplayProgram = Program & {
+	thumbnailFile?: {
+		secure_url?: string;
+	};
+	raised?: number;
+	totalDonors?: number;
+	status?: string;
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const fallbackPrograms: DisplayProgram[] = [
 	{
-		isActive: true,
+		id: "fallback-child-to-school",
 		title: "Child to School",
-		target: 1200000,
-		raised: 400000,
+		target: 1_200_000,
+		totalRaised: 400_000,
+		raised: 400_000,
+		numberOfDonors: 12,
 		totalDonors: 12,
 		progress: 40,
-		status: "ongoing",
+		statusText: "Ongoing",
 		description:
 			"This program supports children from underprivileged communities by providing school materials, uniforms, and tuition assistance. Together, we can keep more children in classrooms and build the bridge toward sustainable education. Your contribution helps turn dreams into possibilities, one child at a time.",
-		thumbnailFile: { secure_url: homeProgram1 },
+		thumbnailFile: { secure_url: programImages[0] },
+		startDuration: dayjs().subtract(5, "months").format("YYYY-MM-DD"),
 	},
 	{
-		thumbnailFile: { secure_url: homeProgram2 },
-		isActive: true,
+		id: "fallback-sustainable-fashion",
 		title: "Sustainable Fashion Drive",
-		target: 600000,
-		raised: 200000,
+		target: 600_000,
+		totalRaised: 200_000,
+		raised: 200_000,
+		numberOfDonors: 6,
 		totalDonors: 6,
-		progress: 88,
-		status: "ongoing",
+		progress: 33,
+		statusText: "Ongoing",
 		description:
-			"Fast fashion harms the planet, but sustainable choices can heal it. This project empowers youth and local tailors with skills in eco-friendly design, fabric recycling, and sustainable clothing production. By donating, you help reduce waste, promote creativity, and inspire a new generation of conscious creators.",
+			"This project empowers youth and local tailors with skills in eco-friendly design, fabric recycling, and sustainable clothing production. Your support helps reduce waste and promote sustainable clothing.",
+		thumbnailFile: { secure_url: programImages[1] },
+		startDuration: dayjs().subtract(4, "months").format("YYYY-MM-DD"),
 	},
 	{
-		thumbnailFile: { secure_url: homeProgram3 },
-		isActive: false,
-		title: "Community Sustainability Project",
-		target: 600000,
-		raised: 100000,
-		totalDonors: 16,
-		progress: 53,
-		status: "draft",
-		description:
-			"GroundUp focuses on building eco-conscious communities through sustainable farming, waste recycling, and renewable energy education. By supporting this program, you’re helping create hands-on learning experiences that teach people how to care for their environment while improving their livelihoods. Every seed planted today grows into a sustainable tomorrow.",
-	},
-	{
-		isActive: true,
+		id: "fallback-stem-for-all",
 		title: "STEM for All Initiative",
-		target: 3000000,
-		raised: 1000000,
+		target: 3_000_000,
+		totalRaised: 1_000_000,
+		raised: 1_000_000,
+		numberOfDonors: 24,
 		totalDonors: 24,
-		progress: 30,
-		status: "ongoing",
+		progress: 33,
+		statusText: "Ongoing",
 		description:
-			"The future belongs to innovators. Through this program, Green Bridge brings STEM education to young learners — especially girls and students from underserved areas. We provide training kits, workshops, and mentorship to spark curiosity and nurture problem-solvers ready to shape a better, greener world.",
-		thumbnailFile: { secure_url: homeProgram4 },
-	},
-	{
-		thumbnailFile: { secure_url: homeProgram5 },
-		isActive: false,
-		title: "Electrify a Neighborhood",
-		target: 1000000,
-		raised: 650000,
-		totalDonors: 32,
-		progress: 32,
-		status: "unpublished",
-		description:
-			"Access to clean energy changes everything — from children studying at night to families feeling safe after dark. This initiative installs solar-powered lighting systems in rural and semi-urban areas where electricity is scarce. Your donation helps light up homes, schools, and community centers, empowering lives and enabling growth.",
+			"Through this program, Green Bridge brings STEM education to young learners, especially girls and students from underserved areas. We provide training kits, workshops, and mentorship to nurture future innovators.",
+		thumbnailFile: { secure_url: programImages[3] },
+		startDuration: dayjs().subtract(3, "months").format("YYYY-MM-DD"),
 	},
 ];
 
-export const pastPrograms = [
+const fallbackPastPrograms: DisplayProgram[] = [
 	{
-		isActive: true,
+		id: "fallback-feed-the-future",
 		title: "Feed the Future",
-		target: 1200000,
-		raised: 400000,
+		target: 1_200_000,
+		totalRaised: 1_200_000,
+		raised: 1_200_000,
+		numberOfDonors: 12,
 		totalDonors: 12,
-		progress: 40,
-		status: "ongoing",
+		progress: 100,
+		statusText: "Completed",
 		description:
-			"This initiative provided over 15,000 nutritious meals to families affected by food insecurity. By collaborating with local farmers and food banks, we helped communities reduce hunger and waste simultaneously.",
-		thumbnailFile: { secure_url: pastProgram1 },
+			"This initiative provided nutritious meals to families affected by food insecurity. By collaborating with local farmers and food banks, we helped communities reduce hunger and waste simultaneously.",
+		thumbnailFile: { secure_url: pastProgramImages[0] },
+		startDuration: dayjs().subtract(8, "months").format("YYYY-MM-DD"),
+		endDuration: dayjs().subtract(3, "months").format("YYYY-MM-DD"),
+		isTargetReached: true,
 	},
 	{
-		thumbnailFile: { secure_url: pastProgram2 },
-		isActive: true,
+		id: "fallback-green-community",
 		title: "Green Community Initiative",
-		target: 600000,
-		raised: 200000,
+		target: 600_000,
+		totalRaised: 600_000,
+		raised: 600_000,
+		numberOfDonors: 6,
 		totalDonors: 6,
-		progress: 88,
-		status: "ongoing",
+		progress: 100,
+		statusText: "Completed",
 		description:
-			"A sustainability drive aimed at reforesting degraded areas and promoting eco-conscious living. Over 5,000 trees were planted, and schools adopted eco-clubs to keep the campaign alive.",
+			"A sustainability drive aimed at reforesting degraded areas and promoting eco-conscious living. Trees were planted, and schools adopted eco-clubs to keep the campaign alive.",
+		thumbnailFile: { secure_url: pastProgramImages[1] },
+		startDuration: dayjs().subtract(9, "months").format("YYYY-MM-DD"),
+		endDuration: dayjs().subtract(4, "months").format("YYYY-MM-DD"),
+		isTargetReached: true,
 	},
 	{
-		thumbnailFile: { secure_url: pastProgram3 },
-		isActive: false,
-		title: "Health for All Outreach",
-		target: 600000,
-		raised: 100000,
-		totalDonors: 16,
-		progress: 53,
-		status: "draft",
-		description:
-			"This medical outreach offered free checkups, vaccinations, and medications to more than 2,000 residents across multiple rural regions. The project also trained local health workers to ensure long-term community wellness.",
-	},
-	{
-		isActive: true,
+		id: "fallback-clean-water",
 		title: "Clean Water for All",
-		target: 3000000,
-		raised: 1000000,
+		target: 3_000_000,
+		totalRaised: 3_000_000,
+		raised: 3_000_000,
+		numberOfDonors: 24,
 		totalDonors: 24,
-		progress: 30,
-		status: "ongoing",
+		progress: 100,
+		statusText: "Completed",
 		description:
-			"By constructing new boreholes and installing solar-powered pumps, this project provided sustainable access to safe drinking water for more than 10,000 people across four communities. Health and hygiene levels have greatly improved.",
-		thumbnailFile: { secure_url: pastProgram4 },
+			"By constructing new boreholes and installing solar-powered pumps, this project provided sustainable access to safe drinking water across multiple communities.",
+		thumbnailFile: { secure_url: pastProgramImages[3] },
+		startDuration: dayjs().subtract(10, "months").format("YYYY-MM-DD"),
+		endDuration: dayjs().subtract(5, "months").format("YYYY-MM-DD"),
+		isTargetReached: true,
 	},
 ];
+
+const getProgramImage = (
+	program: DisplayProgram,
+	index: number,
+	isPast: boolean,
+) => {
+	const legacyUrl = program.thumbnailFile?.secure_url;
+	const apiUrl = program.thumbnail?.url;
+
+	if (typeof apiUrl === "string" && apiUrl.trim()) return apiUrl;
+	if (typeof legacyUrl === "string" && legacyUrl.trim()) return legacyUrl;
+
+	const images = isPast ? pastProgramImages : programImages;
+	return images[index % images.length];
+};
 
 const AllPrograms = () => {
-	const programType = ["ongoing", "past"],
-		[isProgram, SetIsProgram] = useState<"ongoing" | "past">("ongoing");
+	const { fields } = useProgramsSection("introduction", DEFAULTS);
+
+	const [isProgram, setIsProgram] = useState<"ongoing" | "past">("ongoing");
+	const [selectedProgram, setSelectedProgram] = useState<DisplayProgram | null>(
+		null,
+	);
+
+	const apiProgramType = isProgram === "past" ? "PAST" : "ONGOING";
+
+	const filters = useMemo(
+		() => ({ programType: apiProgramType }),
+		[apiProgramType],
+	);
+
+	const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
+		useInfiniteProgramsQuery(filters);
+
+	const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+	const fetchedPrograms = useMemo(
+		() =>
+			data?.pages.flatMap(page =>
+				Array.isArray(page.data) ? page.data : [],
+			) ?? [],
+		[data],
+	);
+
+	const fallback =
+		isProgram === "past" ? fallbackPastPrograms : fallbackPrograms;
+
+	const workActions: DisplayProgram[] =
+		fetchedPrograms.length > 0 ? fetchedPrograms : fallback;
+
+	useEffect(() => {
+		const sentinel = sentinelRef.current;
+
+		if (!sentinel || !hasNextPage || isFetchingNextPage || isLoading) {
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			entries => {
+				if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+					void fetchNextPage();
+				}
+			},
+			{
+				root: null,
+				rootMargin: "300px",
+				threshold: 0,
+			},
+		);
+
+		observer.observe(sentinel);
+
+		return () => observer.disconnect();
+	}, [fetchNextPage, hasNextPage, isFetchingNextPage, isLoading]);
+
+	const openProgramDonation = (program: DisplayProgram) => {
+		// Fallback entries use local IDs, not real database IDs.
+		// Only API programs with a MongoDB _id can be donated to specifically.
+		const programId = program._id;
+
+		if (
+			typeof programId !== "string" ||
+			!programId.trim() ||
+			!fetchedPrograms.some(item => String(item._id) === programId)
+		) {
+			return;
+		}
+
+		setSelectedProgram(program);
+	};
 
 	return (
-		<div className=" px-10 md:px-40 py-10 md:py-24 relative">
-			<div className="grid md:grid-cols-2 items-end gap-8">
+		<section className="relative overflow-hidden px-6 py-10 md:px-40 md:py-24">
+			<div className="pointer-events-none absolute -right-32 top-24 h-72 w-72 rounded-full bg-[#D4E8DD]/40 blur-3xl" />
+
+			<div className="relative grid items-end gap-8 md:grid-cols-2">
 				<div className="flex flex-col">
-					<h1 className="text-[#1A1A1A] font-bold capitalize text-[32px] py-1">
-						{isProgram} Programs
-					</h1>
-					<p className="text-[#3A3A3A] text-[16px]">
-						{isProgram === "ongoing"
-							? `These are the projects currently making an impact in communities.
-						Your support helps us keep them alive, growing, and reaching more
-						lives every day.`
-							: `These completed programs are a testament to what we can achieve together. Each one tells a story of hope, progress, and the lasting change your support made possible.`}
-					</p>
+					<Reveal distance={24}>
+						<h1 className="py-1 text-[32px] font-bold capitalize tracking-tight text-[#1A1A1A]">
+							{isProgram === "ongoing"
+								? asText(fields.title, DEFAULTS.title)
+								: "Past Programs"}
+						</h1>
+					</Reveal>
+
+					<Reveal distance={24} delay={100}>
+						<p className="text-[16px] leading-8 text-[#3A3A3A]">
+							{isProgram === "ongoing"
+								? asText(fields.description, DEFAULTS.description)
+								: "These completed programs are a testament to what we can achieve together. Each one tells a story of hope, progress, and the lasting change your support made possible."}
+						</p>
+					</Reveal>
 				</div>
-				<div className=" md:absolute md:right-5 md:-top-20 md:z-35">
-					<div className="bg-[#D8EAE0] rounded-full w-full md:max-w-xl p-4 md:p-6 m-h-16 md:min-h-24">
+
+				<Reveal
+					distance={20}
+					className="md:absolute md:right-5 md:-top-20 md:z-30">
+					<div className="w-full rounded-full bg-[#D8EAE0] p-4 md:max-w-xl md:p-6">
 						<div className="grid grid-cols-2 gap-3">
-							{programType?.map((program, pdx) => (
-								<PrimaryBtn
-									text={`${program} programs`}
-									key={pdx}
-									onClick={() => SetIsProgram(program as "ongoing" | "past")}
-									className={`py-3 rounded-full min-h-12 hover:scale-105 mt-auto ease-in-out transition-all uppercase text-[12px] md:text-lg px-1 md:px-5 ${
+							{(["ongoing", "past"] as const).map(program => (
+								<Button
+									variant={isProgram === program ? "secondary" : "outline"}
+									key={program}
+									onClick={() => {
+										setIsProgram(program);
+										setSelectedProgram(null);
+									}}
+									className={`mt-auto min-h-12 rounded-full px-1 py-3 text-[12px] uppercase transition-all ease-in-out hover:scale-105 hover:shadow md:px-5 md:text-lg ${
 										isProgram === program
-											? " bg-white shadow text-black border-transparent font-bold border"
-											: " text-[#3a3a3a] hover:shadow"
-									}`}
-								/>
+											? "border border-transparent bg-white font-bold text-black shadow"
+											: "text-[#3A3A3A]"
+									}`}>
+									{`${program} programs`}
+								</Button>
 							))}
 						</div>
 					</div>
-				</div>
+				</Reveal>
 			</div>
-			<OurWorkInAction programType={isProgram} />
-		</div>
+
+			{isLoading && fetchedPrograms.length === 0 ? (
+				<div className="grid gap-8 pt-10">
+					{[0, 1, 2].map(item => (
+						<div key={item} className="grid animate-pulse gap-6 md:grid-cols-2">
+							<div className="min-h-64 rounded-2xl bg-gray-100 md:min-h-80" />
+							<div className="space-y-4 p-3">
+								<div className="h-7 w-2/3 rounded bg-gray-100" />
+								<div className="h-4 rounded bg-gray-100" />
+								<div className="h-4 w-5/6 rounded bg-gray-100" />
+								<div className="h-12 rounded bg-gray-100" />
+							</div>
+						</div>
+					))}
+				</div>
+			) : (
+				<>
+					{workActions.length === 0 ? (
+						<p className="py-10 text-[#3A3A3A]">
+							No {isProgram} programs are available right now.
+						</p>
+					) : (
+						<div className="grid gap-6 pt-10">
+							{workActions.map((program, index) => {
+								const image = getProgramImage(
+									program,
+									index,
+									isProgram === "past",
+								);
+
+								const target = Number(program.target ?? 0);
+								const raised = Number(
+									program.totalRaised ?? program.raised ?? 0,
+								);
+
+								const progress = Math.min(
+									100,
+									Math.max(
+										0,
+										Number(
+											program.progress ??
+												(target > 0 ? (raised / target) * 100 : 0),
+										),
+									),
+								);
+
+								const startDate = program.startDuration || program.createdAt;
+								const endDate = program.endDuration;
+								const programKey = String(
+									program._id ?? program.id ?? `${program.title}-${index}`,
+								);
+
+								return (
+									<Reveal
+										key={programKey}
+										distance={28}
+										delay={(index % 3) * 100}>
+										<div>
+											<div className="grid items-stretch gap-6 md:grid-cols-2">
+												<div className="relative min-h-64 rounded-2xl md:min-h-80">
+													<div className="absolute left-3 top-0 z-0 h-[90%] w-[85%] rounded-xl bg-[#2A8C56] md:-top-3" />
+
+													<img
+														src={image}
+														alt={program.title}
+														loading="lazy"
+														className="absolute inset-0 z-10 h-[90%] w-5/6 rounded-2xl object-cover transition-transform duration-700 hover:scale-[1.02]"
+													/>
+												</div>
+
+												<div className="p-3">
+													<h2 className="py-1 text-[20px] font-bold capitalize tracking-tight text-[#1A1A1A]">
+														{program.title}
+													</h2>
+
+													<p className="pt-3 text-[14px] leading-7 text-[#3A3A3A]">
+														{program.description || program.caption || ""}
+													</p>
+
+													{isProgram === "past" ? (
+														<div className="flex flex-wrap items-center gap-2 py-3 text-xs">
+															<span>Target:</span>
+
+															<div className="w-auto rounded-lg bg-[#D8EAE0] p-2">
+																{formatCurrency(target)} goal
+																{program.isTargetReached ? " reached" : ""}
+															</div>
+
+															{startDate && (
+																<div className="w-auto rounded-lg bg-[#D8EAE0] p-2">
+																	{dayjs(startDate).format("MMMM YYYY")}
+																	{" - "}
+																	{endDate
+																		? dayjs(endDate).format("MMMM YYYY")
+																		: "Completed"}
+																</div>
+															)}
+
+															<div className="w-auto rounded-full border bg-[#ECFDF3] p-2 text-green-600">
+																{program.isTargetReached || progress >= 100
+																	? "Target Achieved"
+																	: "Successful"}
+															</div>
+														</div>
+													) : (
+														<>
+															<div className="flex flex-wrap items-center gap-3 py-3">
+																<span>Target:</span>
+
+																<div className="w-auto rounded-lg bg-[#D8EAE0] p-2">
+																	{formatCurrency(target)}
+																</div>
+
+																{startDate && (
+																	<div className="w-auto rounded-lg bg-[#D8EAE0] p-2">
+																		{dayjs(startDate).format("MMMM YYYY")} -
+																		{" Present"}
+																	</div>
+																)}
+															</div>
+
+															<div className="block w-full">
+																<div className="flex w-full items-center gap-2">
+																	<div
+																		className="relative h-2 w-full rounded-full bg-[#E0D5E9]"
+																		role="progressbar"
+																		aria-label={`${program.title} fundraising progress`}
+																		aria-valuemin={0}
+																		aria-valuemax={100}
+																		aria-valuenow={Math.round(progress)}>
+																		<div
+																			className="h-full rounded-full bg-[#1C5D39] transition-[width] duration-1000 ease-out"
+																			style={{ width: `${progress}%` }}
+																		/>
+																	</div>
+
+																	<span className="shrink-0 text-sm">
+																		{Math.round(progress)}%
+																	</span>
+																</div>
+															</div>
+
+															<div className="pt-3">
+																<Button
+																	onClick={() => openProgramDonation(program)}
+																	disabled={
+																		!program._id ||
+																		!fetchedPrograms.some(
+																			item =>
+																				String(item._id) ===
+																				String(program._id),
+																		)
+																	}
+																	className="mt-auto min-h-12 rounded-2xl bg-[#2A8C56] px-10 py-3 text-white transition-all duration-500 ease-in-out hover:scale-105">
+																	Donate to this Program
+																</Button>
+															</div>
+														</>
+													)}
+												</div>
+											</div>
+
+											{index !== workActions.length - 1 && (
+												<hr className="mt-6 bg-[#2A8C56]" />
+											)}
+										</div>
+									</Reveal>
+								);
+							})}
+						</div>
+					)}
+
+					<div ref={sentinelRef} className="h-2 w-full" />
+
+					{isFetchingNextPage && (
+						<div className="py-8 text-center text-sm text-[#3A3A3A]">
+							Loading more programs...
+						</div>
+					)}
+
+					{!hasNextPage &&
+						fetchedPrograms.length > 0 &&
+						!isFetchingNextPage && <hr className="mt-5 text-gray-50" />}
+				</>
+			)}
+
+			<DonationModal
+				isOpen={Boolean(selectedProgram)}
+				onClose={() => setSelectedProgram(null)}
+				isSpecific={selectedProgram}
+				title="Donate to This Program"
+			/>
+		</section>
 	);
 };
 
 export default AllPrograms;
-
-const OurWorkInAction = ({
-	programType,
-}: {
-	programType?: "ongoing" | "past";
-}) => {
-	const { getLogger, data } = useProgramsStore();
-	const [datum, setDatum] = useState<dataType | any>({ docs: [] });
-
-	useEffect(() => {
-		apiCall({
-			type: "get",
-			url: `/api/v1/program/get-programs`,
-			getter: (d: any) => getLogger(d),
-			params: {
-				programType,
-			},
-		});
-	}, [programType]);
-
-	useEffect(() => {
-		setDatum(data);
-	}, [data]);
-
-	if (!data || datum?.docs?.length === 0)
-		return (
-			<ActualWorks
-				workActions={programType === "past" ? pastPrograms : programs}
-				programType={programType}
-			/>
-		);
-
-	return <ActualWorks workActions={datum?.docs} programType={programType} />;
-};
-
-const ActualWorks = ({
-	workActions,
-	programType,
-}: {
-	workActions?: any[];
-	programType?: "ongoing" | "past";
-}) => {
-	const [isProgramDonation, setIsProgramDonation] = useState<boolean | any>(
-		false
-	);
-	return (
-		<>
-			<div className="grid gap-6 pt-10">
-				{workActions?.map((program, pdx) => (
-					<div className="" key={pdx}>
-						<div className="grid md:grid-cols-2 gap-6 items-stretch">
-							{/* Image Column - Full height with background layer behind */}
-							<div className="relative rounded-2xl h-full min-h-64 md:min-h-80">
-								{/* Green background layer (behind the image) */}
-								<div className="absolute inset-0 bg-[#2A8C56] z-0 w-[85%] h-[90%] rounded-xl left-3 -top-2 md:-top-3" />
-
-								{/* Actual image - covers the entire container */}
-								<img
-									src={program?.thumbnailFile?.secure_url || programBG}
-									alt={program?.title}
-									className="absolute inset-0 w-5/6 h-5/6 object-fit z-10 rounded-2xl"
-								/>
-							</div>
-							<div className="">
-								<div className="p-3">
-									<h3 className="text-[#1a1a1a] font-bold capitalize text-[20px] py-1">
-										{program?.title}
-									</h3>
-									<p className="text-[#3A3A3A] text-[14px] pt-3 leading-6">
-										{program?.description}
-									</p>
-									{programType === "past" ? (
-										<div className="flex items-center gap-2 py-3 text-xs">
-											{pdx % 2 !== 0 ? (
-												<>
-													<span>Target:</span>
-													<div className="bg-[#D8EAE0] p-2 rounded-lg w-auto">
-														{nairaSignNeutral}
-														{(program?.target || 0).toLocaleString()} goal
-														reached
-													</div>
-												</>
-											) : (
-												<span></span>
-											)}
-
-											<div className="bg-[#D8EAE0] p-2 rounded-lg w-auto">
-												{dayjs(
-													program?.startDuration ||
-														dayjs().subtract(5, "months")
-												).format("MMMM YYYY")}{" "}
-												- {dayjs(program?.endDuration).format("MMMM YYYY")}
-											</div>
-											<div className="text-green-600 bg-[#ECFDF3] p-2 rounded-full w-auto border">
-												{pdx % 2 !== 0 ? (
-													<span>Target Archieved</span>
-												) : (
-													<span>Successful</span>
-												)}
-											</div>
-										</div>
-									) : (
-										<>
-											<div className="flex items-center gap-3 pb-3">
-												{pdx % 2 !== 0 ? <span>Target:</span> : <span></span>}
-												<div className="bg-[#D8EAE0] p-2 rounded-lg w-auto">
-													{pdx % 2 !== 0 ? (
-														<span>
-															{nairaSignNeutral}
-															{(program?.target || 0).toLocaleString()}
-														</span>
-													) : (
-														<span>
-															{dayjs(program?.startDuration).format(
-																"MMMM YYYY"
-															)}{" "}
-															- Present
-														</span>
-													)}
-												</div>
-											</div>
-											{pdx % 2 !== 0 ? (
-												<div className="block w-full">
-													<div className="flex items-center gap-2 w-full">
-														<div className="relative h-2 w-full rounded-full bg-[#E0D5E9]">
-															<div
-																className="h-full rounded-full bg-[#1C5D39]"
-																style={{
-																	width: `${program?.progress || 0}%`,
-																}}></div>
-														</div>
-														<span>
-															{(program?.progress || 0).toLocaleString()}%
-														</span>
-													</div>
-												</div>
-											) : (
-												<span></span>
-											)}
-											<div className="pt-3">
-												<PrimaryBtn
-													// disabled={!!loading}
-													// loading={!!loading}
-													onClick={() => setIsProgramDonation(program)}
-													width="w"
-													text="Donate to this Program"
-													className="bg-[#2A8C56] py-3 text-white rounded-2xl min-h-12 px-10 hover:scale-105 mt-auto ease-in-out transition-all duration-500"
-												/>
-											</div>
-										</>
-									)}
-								</div>
-							</div>
-						</div>
-						{pdx !== workActions?.length - 1 && (
-							<Divider className="bg-[#2A8C56]" />
-						)}
-					</div>
-				))}
-			</div>
-			<GeneralDonationModal
-				isOpen={!!isProgramDonation}
-				onClose={() => setIsProgramDonation(false)}
-				isSpecific={isProgramDonation}
-				title="Donate to This Program"
-			/>
-		</>
-	);
-};

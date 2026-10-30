@@ -1,265 +1,418 @@
-import IconButton from "@mui/material/IconButton";
-import { Mail, MapPinHouse, Phone } from "lucide-react";
+import { useState } from "react";
+import type { JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
-import PrimaryBtn from "../../../components/button";
-import TextInput from "../../../components/inputs/myinput";
+import { Mail, MapPinHouse, Phone, Link2 } from "lucide-react";
+
 import {
-	BsFacebook,
-	BsInstagram,
-	BsLinkedin,
-	BsThreads,
-	BsTwitterX,
-} from "react-icons/bs";
-import { useApiCall } from "../../../data/useFetcher";
+	Facebook,
+	Instagram,
+	LinkedInIcon,
+	Twitter,
+} from "../../../components/ui/Icons";
+import Reveal from "../../../components/shared/Reveal";
+import { Button, Input, Textarea } from "../../../components/ui";
+import { useContactSection } from "../data/contactContent";
+import { useContactSupportMutation } from "../../../data/hooks/useContactSupport";
+
+interface ContactFormValues {
+	fullname: string;
+	email: string;
+	address: string;
+	message: string;
+}
+
+interface ContactDetailsFields {
+	title: string;
+	description: string;
+	email: string;
+	phone: string;
+	address: string;
+}
+
+interface ContactFormFields {
+	title: string;
+}
+
+interface SocialLink {
+	name: string;
+	url: string;
+}
+
+interface SocialLinksFields {
+	items: SocialLink[];
+}
+
+const CONTACT_DETAILS_DEFAULTS: ContactDetailsFields = {
+	title: "Contact Information",
+	description:
+		"Reach out to our team directly through any of the channels below. We’re always happy to connect, collaborate, and answer your questions.",
+	email: "greenbridgeforschool@gmail.com",
+	phone: "+234 903 519 4844",
+	address: "23 Agric, Ikorodu, Lagos.",
+};
+
+const CONTACT_FORM_DEFAULTS: ContactFormFields = {
+	title: "Contact form",
+};
+
+const SOCIAL_LINKS_DEFAULTS: SocialLinksFields = {
+	items: [
+		{ name: "Threads", url: "" },
+		{ name: "Facebook", url: "" },
+		{ name: "X", url: "" },
+		{ name: "Instagram", url: "" },
+		{ name: "LinkedIn", url: "" },
+	],
+};
+
+const SOCIAL_ICONS: Record<
+	string,
+	(props: { width?: number; height?: number }) => JSX.Element
+> = {
+	"facebook": Facebook,
+	"instagram": Instagram,
+	"linkedin": LinkedInIcon,
+	"x": Twitter,
+	"twitter(x)": Twitter,
+	"twitter": Twitter,
+};
+
+const getText = (value: unknown, fallback = ""): string =>
+	typeof value === "string" && value.trim() ? value : fallback;
+
+const getSafeExternalUrl = (value: string): string | null => {
+	try {
+		const url = new URL(value);
+
+		return url.protocol === "https:" || url.protocol === "http:"
+			? url.toString()
+			: null;
+	} catch {
+		return null;
+	}
+};
 
 const ContactFormInformation = () => {
-	const contactDetails = [
+	const [feedback, setFeedback] = useState<{
+		type: "success" | "error";
+		message: string;
+	} | null>(null);
+
+	const contactDetails = useContactSection(
+		"contact-details",
+		CONTACT_DETAILS_DEFAULTS,
+	);
+
+	const contactForm = useContactSection("contact-form", CONTACT_FORM_DEFAULTS);
+
+	const socialLinks = useContactSection("social-links", SOCIAL_LINKS_DEFAULTS);
+
+	const { mutateAsync, isPending } = useContactSupportMutation();
+
+	const {
+		control,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<ContactFormValues>({
+		defaultValues: {
+			fullname: "",
+			email: "",
+			address: "",
+			message: "",
+		},
+	});
+
+	const details = contactDetails.fields;
+	const formFields = contactForm.fields;
+	const socials = socialLinks.fields.items;
+
+	const onSubmit = async (values: ContactFormValues) => {
+		setFeedback(null);
+
+		try {
+			await mutateAsync({
+				fullname: values.fullname.trim(),
+				email: values.email.trim(),
+				message: values.message.trim(),
+			});
+
+			setFeedback({
+				type: "success",
+				message: "Your message has been sent successfully.",
+			});
+
+			reset();
+		} catch {
+			setFeedback({
+				type: "error",
+				message: "Unable to send your message. Please try again.",
+			});
+		}
+	};
+
+	const contactItems = [
 		{
 			title: "Email",
-			value: "greenbridgeforschool@gmail.com",
+			value: getText(details.email),
 			icon: Mail,
 		},
 		{
 			title: "Phone",
-			value: "+234 903 519 4844",
+			value: getText(details.phone),
 			icon: Phone,
 		},
 		{
 			title: "Address",
-			value: "23 Agric, Ikorodu, Lagos.",
+			value: getText(details.address),
 			icon: MapPinHouse,
 		},
 	];
-	type FormType = {
-		fullname: string;
-		message: string;
-		address: string;
-		email: string;
-	};
-	const def = {
-			email: "",
-			fullname: "",
-			message: "",
-			address: "",
-		},
-		{
-			control,
-			handleSubmit,
-			formState: { errors },
-			reset,
-		} = useForm({
-			defaultValues: def,
-		}),
-		socialLinks = [
-			{
-				name: "Threads",
-				value: "",
-				icon: <BsThreads color="#3A3A3A" className="text-3xl md:text-5xl" />,
-			},
-			{
-				name: "Facebook",
-				value: "",
-				icon: <BsFacebook color="#3A3A3A" className="text-3xl md:text-5xl" />,
-			},
-			{
-				name: "Twitter(X)",
-				value: "",
-				icon: <BsTwitterX color="#3A3A3A" className="text-3xl md:text-5xl" />,
-			},
-			{
-				name: "Instagram",
-				value: "",
-				icon: <BsInstagram color="#3A3A3A" className="text-3xl md:text-5xl" />,
-			},
-			{
-				name: "LinkedIn",
-				value: "",
-				icon: <BsLinkedin color="#3A3A3A" className="text-3xl md:text-5xl" />,
-			},
-		];
-
-	const { loading, onSubmitAPI } = useApiCall(),
-		onSubmit = async (data: FormType) => {
-			await onSubmitAPI({
-				url: "/api/v1/support",
-				type: "post",
-				data,
-				setResponse: () => {
-					reset(def);
-				},
-			});
-		};
 
 	return (
-		<div className=" px-10 md:px-40 py-10 md:py-30 relative">
-			<div className="grid md:grid-cols-2 items-end gap-8">
-				<div className="">
-					<h1 className="text-[#1A1A1A] font-bold capitalize text-[32px] py-1">
-						Contact Information
-					</h1>
-					<p className="text-[#3A3A3A] text-[16px]">
-						Reach out to our team directly through any of the channels below.
-						We’re always happy to connect, collaborate, and answer your
-						questions.
-					</p>
-					<div className="py-4">
-						{contactDetails?.map((contact, cdx) => {
-							const Icon = contact?.icon;
-							return (
-								<div className="flex items-start gap-2 pb-4" key={cdx}>
-									<div className="border border-dashed border-gray-200 rounded-md">
-										<IconButton>
-											<Icon color="#2A8C56" />
-										</IconButton>
-									</div>
-									<div className="">
-										<h1 className="text-[#1A1A1A] font-bold capitalize text-[18px] py-1">
-											{contact?.title}:
-										</h1>
-										<p className="text-[#3A3A3A] text-[13px]">
-											{contact?.value}
-										</p>
-									</div>
-								</div>
-							);
-						})}
-					</div>
-				</div>
-			</div>
-			<div className=" md:absolute md:right-5 md:-top-20 md:z-35">
-				<div className="w-full md:min-w-xl m-h-60 md:min-h-72 rounded-lg rounded-tl-[80px] bg-[#E1EFE7] p-6 md:p-12 ">
-					<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
-						<h1 className="text-[#1A1A1A] font-bold capitalize text-[32px] py-1">
-							Contact form
-						</h1>
-						<div>
-							<div className="space-y-4">
-								<div>
-									<Controller
-										name="fullname"
-										control={control}
-										rules={{
-											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Firstname LastName(Surname)"
-												name={name}
-												label="Full Name"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
-									/>
-									{errors.fullname && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.fullname.message}
-										</p>
-									)}
-								</div>
-								<div>
-									<Controller
-										name="email"
-										control={control}
-										rules={{
-											required: "This field is required",
-											pattern: {
-												value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-												message: "Invalid email format",
-											},
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your email"
-												name={name}
-												label="Email Address"
-												type="email"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
-									/>
-									{errors.email && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.email.message}
-										</p>
-									)}
-								</div>
-								<div>
-									<Controller
-										name="address"
-										control={control}
-										rules={{}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your home address"
-												name={name}
-												label="Address"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
-									/>
-									{errors.address && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.address.message}
-										</p>
-									)}
-								</div>
-								<div>
-									<Controller
-										name="message"
-										control={control}
-										rules={{
-											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2 placeholder::text-[#3A3A3A]"
-												value={value}
-												onChange={onChange}
-												placeholder="Type Your Message here..."
-												name={name}
-												label="Message"
-												type="textarea"
-												labelColor="#fff"
-											/>
-										)}
-									/>
-									{errors.message && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.message.message}
-										</p>
-									)}
-								</div>
+		<div className="relative px-6 py-12 sm:px-10 md:px-40 md:py-30">
+			{/* Contact information */}
+			<div className="grid items-end gap-8 md:grid-cols-2">
+				<Reveal className="relative z-10" distance={28}>
+					<div>
+						<p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-[#2A8C56]">
+							Get in touch
+						</p>
 
-								<div className="pt-6">
-									<PrimaryBtn
-										disabled={!!loading}
-										loading={!!loading}
-										width="w"
-										text="Send Message"
-										className="bg-[#2A8C56] py-3 text-white rounded-2xl min-h-12 px-10 hover:scale-105"
-									/>
-								</div>
+						<h1 className="py-1 text-3xl font-bold capitalize leading-tight text-[#1A1A1A] md:text-[32px]">
+							{getText(details.title, CONTACT_DETAILS_DEFAULTS.title)}
+						</h1>
+
+						<p className="mt-3 max-w-xl text-base leading-7 text-[#3A3A3A]">
+							{getText(
+								details.description,
+								CONTACT_DETAILS_DEFAULTS.description,
+							)}
+						</p>
+
+						<div className="mt-7 space-y-5">
+							{contactItems.map(contact => {
+								const Icon = contact.icon;
+
+								return (
+									<div key={contact.title} className="flex items-start gap-4">
+										<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#DCE9E1] bg-[#F4F8F5]">
+											<Icon color="#2A8C56" size={21} strokeWidth={1.8} />
+										</div>
+
+										<div className="min-w-0 pt-0.5">
+											<h2 className="text-base font-bold capitalize text-[#1A1A1A]">
+												{contact.title}
+											</h2>
+
+											<p className="mt-1 break-words text-sm leading-6 text-[#3A3A3A]">
+												{contact.value || "Contact information unavailable"}
+											</p>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				</Reveal>
+			</div>
+
+			{/* Contact form - preserve the original absolute positioning */}
+			<Reveal
+				className="relative mt-10 md:absolute md:right-5 md:-top-20 md:z-35 md:mt-0"
+				delay={120}
+				distance={32}>
+				<div className="w-full rounded-lg rounded-tl-[55px] bg-[#E1EFE7] p-5 shadow-[0_20px_60px_rgba(16,61,38,0.10)] sm:p-7 md:min-h-72 md:min-w-xl md:rounded-tl-[80px] md:p-10">
+					<form
+						onSubmit={handleSubmit(onSubmit)}
+						className="flex flex-col"
+						noValidate>
+						<div className="mb-5">
+							<p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#2A8C56]">
+								Send us a message
+							</p>
+
+							<h1 className="text-2xl font-bold capitalize text-[#1A1A1A] md:text-[32px]">
+								{getText(formFields.title, CONTACT_FORM_DEFAULTS.title)}
+							</h1>
+						</div>
+
+						<div className="space-y-4">
+							<div>
+								<Controller
+									name="fullname"
+									control={control}
+									rules={{
+										required: "This field is required",
+										validate: value =>
+											value.trim().length > 0 || "This field is required",
+									}}
+									render={({ field }) => (
+										<Input
+											{...field}
+											value={field.value}
+											placeholder="Firstname LastName (Surname)"
+											label="Full Name"
+											autoComplete="name"
+											required
+											error={errors.fullname?.message}
+											className="w-full rounded-lg bg-white px-2 py-4 text-[#3A3A3A]"
+										/>
+									)}
+								/>
+
+								{errors.fullname && (
+									<p className="mt-1 text-xs text-[#dc2626]">
+										{errors.fullname.message}
+									</p>
+								)}
+							</div>
+
+							<div>
+								<Controller
+									name="email"
+									control={control}
+									rules={{
+										required: "This field is required",
+										pattern: {
+											value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+											message: "Invalid email format",
+										},
+									}}
+									render={({ field }) => (
+										<Input
+											{...field}
+											value={field.value}
+											placeholder="Your email"
+											label="Email Address"
+											type="email"
+											autoComplete="email"
+											required
+											error={errors.email?.message}
+											className="w-full rounded-lg bg-white px-2 py-4 text-[#3A3A3A]"
+										/>
+									)}
+								/>
+
+								{errors.email && (
+									<p className="mt-1 text-xs text-[#dc2626]">
+										{errors.email.message}
+									</p>
+								)}
+							</div>
+
+							<div>
+								<Controller
+									name="address"
+									control={control}
+									render={({ field }) => (
+										<Input
+											{...field}
+											value={field.value}
+											placeholder="Your home address"
+											label="Address"
+											autoComplete="street-address"
+											className="w-full rounded-lg bg-white px-2 py-4 text-[#3A3A3A]"
+										/>
+									)}
+								/>
+							</div>
+
+							<div>
+								<Controller
+									name="message"
+									control={control}
+									rules={{
+										required: "This field is required",
+										validate: value =>
+											value.trim().length > 0 || "This field is required",
+									}}
+									render={({ field }) => (
+										<Textarea
+											{...field}
+											value={field.value}
+											placeholder="Type your message here..."
+											label="Message"
+											required
+											error={errors.message?.message}
+											className="w-full rounded-lg bg-white px-2 py-4 text-[#3A3A3A] placeholder:text-[#3A3A3A]"
+										/>
+									)}
+								/>
+
+								{errors.message && (
+									<p className="mt-1 text-xs text-[#dc2626]">
+										{errors.message.message}
+									</p>
+								)}
+							</div>
+
+							{feedback && (
+								<p
+									role="status"
+									aria-live="polite"
+									className={`rounded-lg px-4 py-3 text-sm ${
+										feedback.type === "success"
+											? "bg-green-50 text-green-700"
+											: "bg-red-50 text-red-700"
+									}`}>
+									{feedback.message}
+								</p>
+							)}
+
+							<div className="pt-2">
+								<Button
+									type="submit"
+									disabled={isPending}
+									loading={isPending}
+									className="min-h-12 w-full rounded-xl bg-[#2A8C56] px-10 py-3 text-white transition-colors hover:bg-[#1C7042]">
+									{isPending ? "Sending..." : "Send Message"}
+								</Button>
 							</div>
 						</div>
 					</form>
 				</div>
-			</div>
-			<div className="flex items-center gap-3 py-3 md:absolute md:-bottom-35 md:z-35 md:right-20 text-center mx-auto">
-				{socialLinks?.map((social, sdx) => (
-					<IconButton className="" title={social?.name} key={sdx}>
-						{social?.icon}
-					</IconButton>
-				))}
-			</div>
+			</Reveal>
+
+			{/* Social icons - separate from the form wrapper */}
+			<Reveal
+				className="relative mt-7 flex items-center justify-center gap-3 md:absolute md:-bottom-35 md:right-20 md:z-35 md:mt-0"
+				delay={220}
+				distance={16}>
+				{Array.isArray(socials) &&
+					socials.map((social, index) => {
+						const name = getText(social?.name);
+
+						if (!name) return null;
+
+						const safeUrl = getSafeExternalUrl(getText(social?.url));
+						const Icon = SOCIAL_ICONS[name.trim().toLowerCase()] ?? Link2;
+
+						const className =
+							"flex items-center justify-center rounded-full p-2 text-[#3A3A3A] transition-all duration-300 hover:bg-[#E1EFE7] hover:text-[#2A8C56] [&_svg]:h-7 [&_svg]:w-7 md:[&_svg]:h-10 md:[&_svg]:w-10";
+
+						return safeUrl ? (
+							<a
+								key={`${name}-${index}`}
+								href={safeUrl}
+								title={name}
+								aria-label={name}
+								target="_blank"
+								rel="noopener noreferrer"
+								className={className}>
+								<Icon width={40} height={40} />
+							</a>
+						) : (
+							<span
+								key={`${name}-${index}`}
+								title={name}
+								aria-label={name}
+								className={className}>
+								<Icon width={40} height={40} />
+							</span>
+						);
+					})}
+			</Reveal>
 		</div>
 	);
 };

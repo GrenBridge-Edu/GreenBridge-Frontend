@@ -1,0 +1,24 @@
+// tsconfig.edge.json — Vercel Routing Middleware (middleware.ts). Runs on Vercel's own edge
+// bundler at deploy time, not through `vite build` — this config exists purely so `tsc -b`
+// (and your editor) can typecheck it locally, mirroring how tsconfig.sw.json covers sw.ts.
+{
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.edge.tsbuildinfo",
+		"target": "es2023",
+		// DOM lib gives us the standard fetch/Request/Response/URL/AbortController types the Edge
+		// runtime provides. "node" types are included ONLY for `process.env` — Vercel's Edge
+		// runtime shims process.env for reading configured environment variables even though
+		// this code doesn't otherwise run in Node.
+		"lib": ["ES2023", "DOM"],
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"types": ["node"],
+		"noEmit": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true
+	},
+	"include": ["middleware.ts"]
+}

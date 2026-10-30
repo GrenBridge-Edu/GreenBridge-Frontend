@@ -1,131 +1,244 @@
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, Navigation } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/navigation";
-import homeStory1 from "../../../assets/images/homeStory1.png";
-import homeStory2 from "../../../assets/images/homeStory2.png";
-import homeStory3 from "../../../assets/images/homeStory3.png";
-import homeStory4 from "../../../assets/images/homeStory4.png";
-import homeStory5 from "../../../assets/images/homeStory5.png";
-import homeStory6 from "../../../assets/images/homeStory6.png";
 import { useRef } from "react";
 
-const OurStories = () => {
-	const stories = [
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperInstance } from "swiper";
+import { Autoplay } from "swiper/modules";
+
+import "swiper/css";
+
+import {
+	asItems,
+	asText,
+	getImageForViewport,
+	getResponsiveImages,
+	useHomeSection,
+} from "../data/homeContent";
+
+import Reveal from "../../../components/shared/Reveal";
+
+interface StoryItem {
+	title?: string;
+	description?: string;
+	imageUrl?: string;
+	images?: unknown;
+	imageVariants?: unknown;
+}
+
+const fallbackImages = [
+	"/images/homeStory1.png",
+	"/images/homeStory2.png",
+	"/images/homeStory3.png",
+	"/images/homeStory4.png",
+	"/images/homeStory5.png",
+	"/images/homeStory6.png",
+];
+
+const DEFAULTS = {
+	title: "Lives we've touched",
+	description:
+		"Every project begins with hope — and every success carries a story. Meet the individuals and communities whose lives have been transformed through our programs and your support.",
+	items: [
 		{
 			title: "Aisha’s Journey: From Dropout to STEM Advocate",
 			description:
 				"Aisha grew up in a rural village where girls rarely finished school. Through Green Bridge’s Students to School program, she received a scholarship and mentorship that helped her return to class. Today, she teaches young girls how to code and dreams of starting a solar tech company in her community.",
-			image: homeStory1,
+			imageUrl: "",
 		},
 		{
 			title: "The Classroom That Found Light",
 			description:
 				"In a small community school, lessons once stopped by noon because of darkness. After Green Bridge’s Electrify a Neighborhood project installed solar panels, evening classes began. Students can now study longer, and teachers hold after-school workshops — a simple change that ignited hope and progress.",
-			image: homeStory2,
+			imageUrl: "",
 		},
 		{
 			title: "Lighting Up Hope in Oke-Ira Village",
 			description:
-				"For years, the small Oke-Ira community lived in darkness once the sun set. Through the Electrify a Neighborhood initiative, Green Bridge installed solar-powered streetlights and rechargeable lanterns for households. The result extended study hours for children, safety, and a revived evening market. The village now calls the lights “our stars of hope.",
-			image: homeStory3,
+				"For years, the small Oke-Ira community lived in darkness once the sun set. Through the Electrify a Neighborhood initiative, Green Bridge installed solar-powered streetlights and rechargeable lanterns for households. The result extended study hours for children, safety, and a revived evening market. The village now calls the lights “our stars of hope.”",
+			imageUrl: "",
 		},
 		{
 			title: "From Waste to Wonders: The Green Youth Initiative",
 			description:
 				"In collaboration with local schools, Green Bridge launched the GroundUp Sustainability Club, where students learn to recycle plastics into creative art and usable items. Over 500 students have participated, turning waste into wealth while spreading awareness on environmental conservation.",
-			image: homeStory4,
+			imageUrl: "",
 		},
 		{
 			title: "Empowering Teachers for a Greener Future",
 			description:
-				"Green Bridge organized a sustainability workshop for rural educators, training over 100 teachers on how to incorporate climate education and STEM projects into their classrooms. One participant, Mr. Bamidele, said, “It changed how I teach. Now my students build solar-powered models instead of just reading about them.",
-			image: homeStory5,
+				"Green Bridge organized a sustainability workshop for rural educators, training over 100 teachers on how to incorporate climate education and STEM projects into their classrooms. One participant, Mr. Bamidele, said, “It changed how I teach. Now my students build solar-powered models instead of just reading about them.”",
+			imageUrl: "",
 		},
 		{
 			title: "Aisha’s Journey Back to School",
 			description:
 				"Aisha, a 10-year-old girl from northern Nigeria, had to stop schooling after her parents couldn’t afford uniforms and books. Through the Send a Child to School program, Green Bridge provided her with school supplies and tuition support. Today, Aisha dreams of becoming a science teacher — inspiring other girls in her community.",
-			image: homeStory6,
+			imageUrl: "",
 		},
-	];
+	],
+};
 
-	const prevRef = useRef<HTMLButtonElement>(null);
-	const nextRef = useRef<HTMLButtonElement>(null);
+const OurStories = () => {
+	const swiperRef = useRef<SwiperInstance | null>(null);
 
-	const pairedStories = [];
-	for (let i = 0; i < stories.length; i += 2) {
-		pairedStories.push(stories.slice(i, i + 2));
+	const { fields, block } = useHomeSection("stories", DEFAULTS);
+
+	const configuredStories = asItems<StoryItem>(fields.items);
+
+	const stories =
+		configuredStories.length > 0
+			? configuredStories.filter(
+					story =>
+						Boolean(story.title?.trim()) ||
+						Boolean(story.description?.trim()) ||
+						Boolean(story.imageUrl?.trim()),
+				)
+			: DEFAULTS.items;
+
+	const displayedStories = stories.length > 0 ? stories : DEFAULTS.items;
+
+	const pairs: StoryItem[][] = [];
+
+	for (let index = 0; index < displayedStories.length; index += 2) {
+		pairs.push(displayedStories.slice(index, index + 2));
 	}
 
 	return (
-		<div className=" px-10 md:px-40 py-10 md:pt-24 md:pb-70 bg-[#D8EAE0]">
-			<div className="grid md:grid-cols-2">
-				<div className="flex flex-col">
-					<h2 className="text-[#2A8C56] uppercase text-[16px]">Our stories</h2>
-					<h1 className="text-[#1A1A1A] font-bold capitalize text-[32px] py-1">
-						lives we've touched
-					</h1>
-					<p className="text-[#3A3A3A] text-[16px]">
-						Every project begins with hope — and every success carries a story.
-						Meet the individuals and communities whose lives have been
-						transformed through our programs and your support.
-					</p>
+		<section className="relative overflow-hidden bg-[#D8EAE0] px-6 py-16 sm:px-10 md:px-16 md:py-24 md:pb-72 lg:px-40">
+			<div
+				aria-hidden="true"
+				className="pointer-events-none absolute -left-40 top-20 h-96 w-96 rounded-full bg-white/40 blur-3xl"
+			/>
+
+			<div
+				aria-hidden="true"
+				className="pointer-events-none absolute -bottom-40 right-0 h-[28rem] w-[28rem] rounded-full bg-[#BBDCC8]/40 blur-3xl"
+			/>
+
+			<div className="relative">
+				<div className="mb-10 grid gap-6 md:mb-14 md:grid-cols-2">
+					<div className="max-w-2xl">
+						<Reveal>
+							<h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-[#2A8C56]">
+								<span className="h-0.5 w-8 rounded-full bg-[#2A8C56]" />
+								Our Stories
+							</h2>
+						</Reveal>
+
+						<Reveal delay={100}>
+							<h1 className="py-3 text-3xl font-bold leading-tight text-[#1A1A1A] sm:text-4xl md:text-[42px]">
+								{asText(fields.title, DEFAULTS.title)}
+							</h1>
+						</Reveal>
+
+						<Reveal delay={200}>
+							<p className="max-w-xl text-sm leading-7 text-[#46554B] sm:text-base">
+								{asText(fields.description, DEFAULTS.description)}
+							</p>
+						</Reveal>
+					</div>
 				</div>
-			</div>
-			<div className="pt-10">
-				<Swiper
-					modules={[Autoplay, Pagination, Navigation]}
-					autoplay={{ delay: 9000, disableOnInteraction: false }}
-					onBeforeInit={(swiper: any) => {
-						if (
-							swiper.params.navigation &&
-							typeof swiper.params.navigation !== "boolean"
-						) {
-							swiper.params.navigation.prevEl = prevRef.current;
-							swiper.params.navigation.nextEl = nextRef.current;
-						}
-					}}
-					navigation={{
-						prevEl: prevRef.current,
-						nextEl: nextRef.current,
-					}}
-					loop={true}
-					className="mySwiper">
-					{pairedStories?.map((pair, pdx) => (
-						<SwiperSlide key={pdx}>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								{" "}
-								{/* Adjust layout as needed */}
-								{pair.map((hero, hdx) => (
-									<div
-										className="grid grid-cols-2 rounded-2xl bg-white"
-										key={hdx}>
-										<img
-											src={hero?.image}
-											alt={hero?.title}
-											className=" rounded-l-2xl h-[50vh] object-cover  transition-all ease-in-out hover:scale-105"
-											loading="lazy"
-										/>
-										<div className="p-3">
-											<div className="bg-[#2A8C56] rounded-2xl p-2">
-												<h3 className="text-[#ffffff] font-bold capitalize text-[16px] py-1">
-													{hero?.title}
-												</h3>
-											</div>
-											<p className="text-[#3A3A3A] text-[12px] pt-3 leading-7">
-												{hero?.description}
-											</p>
-										</div>
+
+				{pairs.length > 0 ? (
+					<>
+						<Swiper
+							modules={[Autoplay]}
+							spaceBetween={0}
+							autoplay={{
+								delay: 9000,
+								disableOnInteraction: false,
+								pauseOnMouseEnter: true,
+							}}
+							loop={pairs.length > 1}
+							onSwiper={swiper => {
+								swiperRef.current = swiper;
+							}}
+							className="!overflow-visible">
+							{pairs.map((pair, pairIndex) => (
+								<SwiperSlide key={`stories-${pairIndex}`} className="px-3">
+									<div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
+										{pair.map((story, pairItemIndex) => {
+											const index = pairIndex * 2 + pairItemIndex;
+
+											const images = getResponsiveImages(story, block, index);
+
+											const image =
+												getImageForViewport(images) ||
+												fallbackImages[index % fallbackImages.length];
+
+											return (
+												<article
+													key={`${story.title ?? "story"}-${index}`}
+													className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_8px_28px_rgba(23,77,55,0.06)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(23,77,55,0.13)] sm:flex-row">
+													<div className="relative h-64 shrink-0 overflow-hidden sm:h-auto sm:min-h-[340px] sm:w-[44%]">
+														<img
+															src={image}
+															alt={asText(story.title, "Green Bridge story")}
+															className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+															loading="lazy"
+														/>
+
+														<div
+															aria-hidden="true"
+															className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-black/5"
+														/>
+
+														<span className="absolute bottom-4 left-4 rounded-full border border-white/40 bg-white/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#2A8C56] backdrop-blur-sm">
+															Story {String(index + 1).padStart(2, "0")}
+														</span>
+													</div>
+
+													<div className="flex min-w-0 flex-1 flex-col justify-center p-5 sm:p-6 lg:p-7">
+														<div className="mb-4 h-1 w-10 rounded-full bg-[#2A8C56] transition-all duration-500 group-hover:w-16" />
+
+														<h3 className="text-xl font-bold leading-snug text-[#1A1A1A] transition-colors duration-300 group-hover:text-[#2A8C56] lg:text-2xl">
+															{asText(story.title)}
+														</h3>
+
+														<p className="mt-4 text-sm leading-7 text-[#59645D]">
+															{asText(story.description)}
+														</p>
+													</div>
+												</article>
+											);
+										})}
 									</div>
-								))}
+								</SwiperSlide>
+							))}
+						</Swiper>
+
+						<Reveal delay={200}>
+							<div className="mt-8 flex items-center justify-between">
+								<p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#557261]">
+									Real stories. Lasting impact.
+								</p>
+
+								<div className="flex gap-3">
+									<button
+										type="button"
+										aria-label="Previous stories"
+										onClick={() => swiperRef.current?.slidePrev()}
+										className="flex h-11 w-11 items-center justify-center rounded-full border border-[#26734D] text-lg text-[#174D37] transition-all duration-300 hover:-translate-x-1 hover:bg-white">
+										←
+									</button>
+
+									<button
+										type="button"
+										aria-label="Next stories"
+										onClick={() => swiperRef.current?.slideNext()}
+										className="flex h-11 w-11 items-center justify-center rounded-full border border-[#26734D] text-lg text-[#174D37] transition-all duration-300 hover:translate-x-1 hover:bg-white">
+										→
+									</button>
+								</div>
 							</div>
-						</SwiperSlide>
-					))}
-				</Swiper>
+						</Reveal>
+					</>
+				) : (
+					<p className="py-8 text-sm text-gray-600">
+						Stories will be featured here soon.
+					</p>
+				)}
 			</div>
-		</div>
+		</section>
 	);
 };
 

@@ -1,12 +1,32 @@
 const CurvePatternTop = () => {
 	return (
-		<div className=" absolute bottom-0 z-30 w-2/3 right-0">
-			<div className="w-full -mb-1 overflow-hidden">
+		<div
+			aria-hidden="true"
+			className="pointer-events-none absolute bottom-0 right-0 z-30 w-2/3">
+			<div className="mb-[-1px] w-full overflow-hidden">
 				<div
-					className="h-24 sm:h-32 lg:h-40 bg-white"
+					className="h-20 bg-white sm:h-28 lg:h-40"
 					style={{
 						borderTopLeftRadius: "2200px 600px",
-						clipPath: "polygon(0 100%, 100% 100%, 100% 0, 48% 0, 0 100%)", // 48% looks even more natural
+						clipPath: "polygon(0 100%, 100% 100%, 100% 0, 48% 0, 0 100%)",
+					}}
+				/>
+			</div>
+		</div>
+	);
+};
+
+export const CurvePatternBottom = () => {
+	return (
+		<div
+			aria-hidden="true"
+			className="pointer-events-none absolute -bottom-24 right-0 z-30 w-2/3 sm:-bottom-28 lg:-bottom-40">
+			<div className="mb-[-1px] w-full overflow-hidden">
+				<div
+					className="h-20 bg-white sm:h-28 lg:h-40"
+					style={{
+						borderBottomLeftRadius: "2200px 600px",
+						clipPath: "polygon(100% 0, 100% 100%, 48% 100%, 0 0, 0 0)",
 					}}
 				/>
 			</div>
@@ -15,19 +35,3 @@ const CurvePatternTop = () => {
 };
 
 export default CurvePatternTop;
-
-export const CurvePatternBottom = () => {
-	return (
-		<div className=" absolute -bottom-38 z-30 w-2/3 right-0">
-			<div className="w-full -mb-1 overflow-hidden">
-				<div
-					className="h-24 sm:h-32 lg:h-40 bg-white"
-					style={{
-						borderBottomLeftRadius: "2200px 600px",
-						clipPath: "polygon(100% 0, 100% 100%, 48% 100%, 0 0, 0 0)", // 48% looks even more natural
-					}}
-				/>
-			</div>
-		</div>
-	);
-};

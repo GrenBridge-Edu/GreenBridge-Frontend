@@ -1,255 +1,306 @@
-import { Controller, useForm } from "react-hook-form";
-import getInvolvedForm1 from "../../../assets/images/getInvolvedForm1.png";
-import PrimaryBtn from "../../../components/button";
-import TextInput from "../../../components/inputs/myinput";
-import { useApiCall } from "../../../data/useFetcher";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { usePartnerWithUsMutation } from "../../../data/hooks/useContactSupport";
+
+import { asText } from "../../home/data/homeContent";
+import { useGetInvolvedSection } from "../data/getInvolvedContent";
+import Reveal from "../../../components/shared/Reveal";
+
+interface PartnerWithUsFormValues {
+	nameOfOrganisation: string;
+	email: string;
+	telephone: string;
+	organizationType: string;
+	areaOfPartnership: string;
+	message: string;
+}
+
+const PARTNER_DEFAULTS = {
+	title: "Partner with us",
+	description:
+		"We believe lasting change happens through collaboration. Partner with Green Bridge on sustainability programs, community projects, or educational initiatives — together, we can reach farther.",
+	formTitle: "Partnership Request Form",
+	imageUrl: "",
+};
+
+const ORGANISATION_TYPES = [
+	"Non-profit organization",
+	"Government agency",
+	"Private company",
+	"Educational institution",
+	"Community organization",
+	"Other",
+];
+
+const PARTNERSHIP_AREAS = [
+	"Education",
+	"Sustainability and environment",
+	"Community development",
+	"Technology and innovation",
+	"Funding and sponsorship",
+	"Other",
+];
 
 const PartnerWithUs = () => {
-	type FormType = {
-		nameOfOrganisation: string;
-		message: string;
-		email: string;
-		telephone: string;
-		organizationType: string;
-		areaOfPartnership: string;
-	};
-	const def = {
-			email: "",
+	const [successMessage, setSuccessMessage] = useState("");
+
+	const { fields } = useGetInvolvedSection("partner", PARTNER_DEFAULTS);
+	const mutation = usePartnerWithUsMutation();
+
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<PartnerWithUsFormValues>({
+		defaultValues: {
 			nameOfOrganisation: "",
-			organizationType: "",
+			email: "",
 			telephone: "",
+			organizationType: "",
 			areaOfPartnership: "",
 			message: "",
 		},
-		{
-			control,
-			handleSubmit,
-			formState: { errors },
-			reset,
-		} = useForm({
-			defaultValues: def,
-		});
+	});
 
-	const { loading, onSubmitAPI } = useApiCall(),
-		onSubmit = async (data: FormType) => {
-			await onSubmitAPI({
-				url: "/api/v1/support/partner-with-us",
-				type: "post",
-				data,
-				setResponse: () => {
-					reset(def);
-				},
+	const onSubmit = async (values: PartnerWithUsFormValues) => {
+		setSuccessMessage("");
+
+		try {
+			const response = await mutation.mutateAsync({
+				nameOfOrganisation: values.nameOfOrganisation.trim(),
+				email: values.email.trim(),
+				telephone: values.telephone.trim(),
+				organizationType: values.organizationType,
+				areaOfPartnership: values.areaOfPartnership,
+				others: values.message.trim(),
 			});
-		};
+
+			setSuccessMessage(
+				response.message ||
+					"Your partnership request has been submitted successfully.",
+			);
+
+			reset();
+		} catch {
+			// The shared API client handles request error notifications.
+		}
+	};
+
+	const inputClassName =
+		"w-full rounded-lg bg-white px-3 py-4 text-[#3A3A3A] outline-none transition duration-200 placeholder:text-[#777] focus:ring-2 focus:ring-[#2A8C56]/30";
+
+	const labelClassName = "mb-2 block text-sm font-medium text-[#3A3A3A]";
+
+	const errorClassName = "mt-1 text-xs text-red-600";
 
 	return (
-		<div className=" px-10 md:px-40 py-10 md:py-24 relative">
+		<section className="relative px-10 py-10 md:px-40 md:py-24">
+			{/* Section heading */}
 			<div className="grid items-end gap-8">
-				<div className="w-full md:max-w-xl m-h-16 md:min-h-24">
+				<div className="min-h-16 w-full md:min-h-24 md:max-w-xl">
 					<div className="flex flex-col">
-						<h1 className="text-[#1A1A1A] font-bold capitalize text-[32px] py-1">
-							Partner with us
-						</h1>
-						<p className="text-[#3A3A3A] text-[16px]">
-							We believe lasting change happens through collaboration. Partner
-							with Green Bridge on sustainability programs, community projects,
-							or educational initiatives — together, we can reach farther.
-						</p>
+						<Reveal>
+							<h1 className="py-1 text-[32px] font-bold capitalize tracking-tight text-[#1A1A1A] md:text-4xl">
+								{asText(fields.title, PARTNER_DEFAULTS.title)}
+							</h1>
+						</Reveal>
+
+						<Reveal delay={100}>
+							<p className="text-[16px] leading-relaxed text-[#3A3A3A]">
+								{asText(fields.description, PARTNER_DEFAULTS.description)}
+							</p>
+						</Reveal>
 					</div>
 				</div>
 			</div>
-			<div className="pt-10">
-				<div className="grid md:grid-cols-4 rounded-4xl">
-					<div className="rounded-t-4xl md:rounded-t-none md:rounded-l-4xl h-full min-h-64 md:min-h-80">
-						{/* Actual image - covers the entire container */}
+
+			{/* Image and partnership form */}
+			<Reveal delay={120} distance={28} className="pt-10">
+				<div className="group grid overflow-hidden rounded-4xl shadow-sm md:grid-cols-4">
+					<div className="h-full min-h-64 overflow-hidden md:min-h-80">
 						<img
-							src={getInvolvedForm1}
-							alt={"Partner with us"}
-							className=" w-full h-full object-cover rounded-t-4xl md:rounded-t-none md:rounded-l-4xl"
+							src={asText(fields.imageUrl, "/images/getInvolvedForm1.png")}
+							alt="Partner with Green Bridge"
+							className="h-full min-h-64 w-full rounded-t-4xl object-cover transition-transform duration-700 group-hover:scale-[1.025] md:min-h-80 md:rounded-l-4xl md:rounded-t-none"
+							loading="lazy"
 						/>
 					</div>
+
 					<form
 						onSubmit={handleSubmit(onSubmit)}
-						className=" md:col-span-3 border-2 border-[#D2D2D2] rounded-b-4xl md:rounded-b-none md:rounded-r-4xl md:rounded-br-4xl bg-[#D4E8DD] p-8 md:p-12">
-						<h1 className="text-[#1A1A1A] font-bold text-[32px] py-1">
-							Partnership Request Form
-						</h1>
-						<div className="grid gap-4 md:grid-cols-2">
+						className="rounded-b-4xl border-2 border-[#D2D2D2] bg-[#D4E8DD] p-8 md:col-span-3 md:rounded-b-none md:rounded-br-4xl md:rounded-r-4xl md:p-12">
+						<h2 className="py-1 text-[32px] font-bold text-[#1A1A1A]">
+							{asText(fields.formTitle, PARTNER_DEFAULTS.formTitle)}
+						</h2>
+
+						{successMessage && (
+							<div
+								role="status"
+								className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+								{successMessage}
+							</div>
+						)}
+
+						<div className="mt-4 grid gap-4 md:grid-cols-2">
+							{/* Left column */}
 							<div className="space-y-4">
 								<div>
-									<Controller
-										name="nameOfOrganisation"
-										control={control}
-										rules={{
+									<label
+										className={labelClassName}
+										htmlFor="partner-organisation">
+										Organization/Individual Name
+									</label>
+									<input
+										id="partner-organisation"
+										autoComplete="organization"
+										placeholder="Your organization name"
+										className={inputClassName}
+										{...register("nameOfOrganisation", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your organization name"
-												name={name}
-												label="Organization/Individual Name"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.nameOfOrganisation && (
-										<p className="text-[#dc2626] text-xs">
+										<p className={errorClassName}>
 											{errors.nameOfOrganisation.message}
 										</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="email"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="partner-email">
+										Email Address
+									</label>
+									<input
+										id="partner-email"
+										type="email"
+										autoComplete="email"
+										placeholder="Your email"
+										className={inputClassName}
+										{...register("email", {
 											required: "This field is required",
 											pattern: {
 												value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 												message: "Invalid email format",
 											},
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your email"
-												name={name}
-												label="Email Address"
-												type="email"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.email && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.email.message}
-										</p>
+										<p className={errorClassName}>{errors.email.message}</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="telephone"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="partner-telephone">
+										Phone Number
+									</label>
+									<input
+										id="partner-telephone"
+										type="tel"
+										autoComplete="tel"
+										placeholder="Your Mobile number"
+										className={inputClassName}
+										{...register("telephone", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your Mobile number"
-												name={name}
-												label="Phone Number"
-												type="tel"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+											validate: value =>
+												/^(?:\+?234|0)[0-9]{10}$/.test(
+													value.replace(/[\s()-]/g, ""),
+												) || "Enter a valid Nigerian phone number",
+										})}
 									/>
 									{errors.telephone && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.telephone.message}
-										</p>
+										<p className={errorClassName}>{errors.telephone.message}</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="organizationType"
-										control={control}
-										rules={{
+									<label
+										className={labelClassName}
+										htmlFor="partner-organisation-type">
+										Organization Type
+									</label>
+									<select
+										id="partner-organisation-type"
+										className={inputClassName}
+										{...register("organizationType", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your Organization Type"
-												name={name}
-												label="Organization Type"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
-									/>
+										})}>
+										<option value="">Select your organization type</option>
+										{ORGANISATION_TYPES.map(type => (
+											<option key={type} value={type}>
+												{type}
+											</option>
+										))}
+									</select>
 									{errors.organizationType && (
-										<p className="text-[#dc2626] text-xs">
+										<p className={errorClassName}>
 											{errors.organizationType.message}
 										</p>
 									)}
 								</div>
 							</div>
+
+							{/* Right column */}
 							<div className="space-y-4">
 								<div>
-									<Controller
-										name="areaOfPartnership"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="partner-area">
+										Area of Partnership
+									</label>
+									<select
+										id="partner-area"
+										className={inputClassName}
+										{...register("areaOfPartnership", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Area of Partnership"
-												name={name}
-												label="Area of Partnership"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
-									/>
+										})}>
+										<option value="">Select an area of partnership</option>
+										{PARTNERSHIP_AREAS.map(area => (
+											<option key={area} value={area}>
+												{area}
+											</option>
+										))}
+									</select>
 									{errors.areaOfPartnership && (
-										<p className="text-[#dc2626] text-xs">
+										<p className={errorClassName}>
 											{errors.areaOfPartnership.message}
 										</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="message"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="partner-message">
+										Message
+									</label>
+									<textarea
+										id="partner-message"
+										rows={7}
+										placeholder="Message/Proposal..."
+										className={`${inputClassName} min-h-40 resize-y md:min-h-60`}
+										{...register("message", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2 placeholder::text-[#3A3A3A] min-h-40 md:min-h-60"
-												value={value}
-												onChange={onChange}
-												placeholder="Message/Proposal..."
-												name={name}
-												label="Message"
-												type="textarea"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.message && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.message.message}
-										</p>
+										<p className={errorClassName}>{errors.message.message}</p>
 									)}
 								</div>
 							</div>
 						</div>
+
 						<div className="pt-6">
-							<PrimaryBtn
-								disabled={!!loading}
-								loading={!!loading}
-								width="w"
-								text="Submit Partnership Request"
-								className="bg-[#2A8C56] py-3 text-white rounded-2xl min-h-12 px-10 hover:scale-105"
-							/>
+							<button
+								type="submit"
+								disabled={mutation.isPending}
+								className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#2A8C56] px-10 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#236F46] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+								{mutation.isPending
+									? "Submitting..."
+									: "Submit Partnership Request"}
+							</button>
 						</div>
 					</form>
 				</div>
-			</div>
-		</div>
+			</Reveal>
+		</section>
 	);
 };
 

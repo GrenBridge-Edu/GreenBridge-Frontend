@@ -1,165 +1,79 @@
-# Workcity Africa Frontend
+# React + TypeScript + Vite
 
-Frontend application for Workcity Africa built with **Vite**, **React**, and **TypeScript**.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 🚀 Features
+Currently, two official plugins are available:
 
-- **Authentication**: Authentication Management
-- **Project Module**: CRUD Project interaction
-- **User Module**: CRUD User interaction (for admin)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## 📋 Prerequisites
+## React Compiler
 
-Before you begin, ensure you have the following installed:
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- **Node.js** v22+ (recommended v24.x.x)
-- **pnpm**, **npm**, or **yarn** installed globally
-- **Git**
+## Expanding the ESLint configuration
 
-## 🔧 Installation
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-1. **Clone the repository**
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-Clone the repository and install dependencies:
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-```bash
-git clone <repository-url>
-cd workcity-assessment-frontend
-```
-
-2. **Install dependencies**
-
-```bash
-pnpm install
-# or
-npm install
-# or
-yarn install
-```
-
-## Environment Variables
-
-Create a .env file in the root directory with the following variables (example):
-
-```bash
-VITE_BASE_URL=your_backend_url
-```
-
-## 🏃‍♂️ Running the Application
-
-### Development Mode
-
-Run the development server:
-
-```bash
-pnpm dev
-# or
-npm run dev
-# or
-yarn dev
-```
-The app will be available at:
-http://localhost:5173
-
-
-## Build
-
-Create a production build:
-
-```bash
-pnpm build
-# or
-npm run build
-# or
-yarn build
-```
-
-## Preview Production Build
-
-```bash
-pnpm preview
-# or
-npm run preview
-# or
-yarn preview
-```
-
-## Linting
-
-Run ESLint checks:
-
-```bash
-pnpm lint
-# or
-npm run lint
-# or
-yarn lint
-```
-
-## 📁 Project Structure
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
 ```
-workcity-assessment-frontend/
-├── public/                 # Static assets
-├── src/
-│   ├── admin/              # Authenticated Admin-related Route-based pages
-│   ├── assets/             # Images, fonts, icons
-│   ├── components/         # Reusable UI components
-│   ├── data/               # State management and API management
-│   ├── pages/              # Authenticated User Route-based pages
-│   ├── screens/            # Unauthenticated Route-based sections/screens
-│   ├── App.css
-│   ├── App.tsx             # Main App component
-│   ├── index.css
-│   ├── main.tsx            # App entry point
-│   ├── PageRender.tsx      # File-based Routing configuration
-│   ├── Router.tsx          # Routing output
-│   ├── typography.css
-│   └── vite-env.d.ts       # TypeScript Vite types
-├── .eslintrc.cjs           # ESLint config
-├── .gitignore
-├── index.html              # HTML template
-├── package.json
-├── pnpm-lock.yaml
-├── tsconfig.json
-├── tsconfig.node.json
-├── vercel.json             # Vercel deployment config
-└── vite.config.ts          # Vite config
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
 ```
 
-
-## 🛠️ Key Dependencies
-
-### Core Technologies
-
-- **React 19.x.x** - UI library
-- **TypeScript 5.x.x** - Type safety
-- **Vite 7.x.x** - Build tool and dev server
-- **React Router DOM 7.x.x** - Routing Managemnt
-
-### Authentication & APIs
-
-- **Axios** - HTTP client
-
-### State Management
-
-- **Zustand** - State management
-
-### Form Validation
-
-- **React Hook Form** - Form Validation and Processing
-
-## 🎨 Styling
-
-This project uses a combination of:
-
-- **Chakra UI** for component-based styling
-- **Tailwind CSS** for utility classes
-- **Lucide React** for Icons and Effect styling
-
-## 📝 Scripts Explained
-
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production (includes TypeScript compilation and Vite build)
-- `npm run lint` - Run ESLint for code quality checks
-- `npm run preview` - Preview production build locally
+<!-- BRANCH-INFO-START -->
+## 🌱 Feature Branch (frontend) - Last Updated: Mon Oct 26 08:41:14 UTC 2026
+<!-- BRANCH-INFO-END -->

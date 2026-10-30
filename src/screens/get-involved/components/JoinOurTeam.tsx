@@ -1,271 +1,282 @@
-import { Controller, useForm } from "react-hook-form";
-import getInvolvedForm1 from "../../../assets/images/getInvolvedForm1.png";
-import PrimaryBtn from "../../../components/button";
-import TextInput from "../../../components/inputs/myinput";
-import { useApiCall } from "../../../data/useFetcher";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { asText } from "../../home/data/homeContent";
+import { useGetInvolvedSection } from "../data/getInvolvedContent";
+import { useJoinOurTeamMutation } from "../../../data/hooks/useContactSupport";
+import Reveal from "../../../components/shared/Reveal";
+
+interface JoinOurTeamFormValues {
+	firstName: string;
+	lastName: string;
+	email: string;
+	telephone: string;
+	positionOfInterest: string;
+	coverLetter: string;
+}
+
+const POSITIONS = [
+	"Education & Training",
+	"Sustainability and Environment",
+	"Media & Communications",
+	"Project & Field Operations",
+	"Technology & Innovation",
+];
+
+const TEAM_DEFAULTS = {
+	title: "Join our team",
+	description:
+		"Use your skills, passion, and creativity to make a difference. Whether in outreach, media, logistics, or teaching, your contribution helps us reach more lives.",
+	formTitle: "Submit your application",
+	imageUrl: "",
+};
 
 const JoinOurTeam = () => {
-	type FormType = {
-		firstName: string;
-		coverLetter: string;
-		email: string;
-		telephone: string;
-		lastName: string;
-		positionOfInterest: string;
-	};
-	const def = {
-			email: "",
+	const [successMessage, setSuccessMessage] = useState("");
+
+	const { fields } = useGetInvolvedSection("team", TEAM_DEFAULTS);
+	const mutation = useJoinOurTeamMutation();
+
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<JoinOurTeamFormValues>({
+		defaultValues: {
 			firstName: "",
 			lastName: "",
+			email: "",
 			telephone: "",
 			positionOfInterest: "",
 			coverLetter: "",
 		},
-		{
-			control,
-			handleSubmit,
-			formState: { errors },
-			reset,
-		} = useForm({
-			defaultValues: def,
-		});
+	});
 
-	const { loading, onSubmitAPI } = useApiCall(),
-		onSubmit = async (data: FormType) => {
-			await onSubmitAPI({
-				url: "/api/v1/support/join-our-team",
-				type: "post",
-				data,
-				setResponse: () => {
-					reset(def);
-				},
+	const onSubmit = async (values: JoinOurTeamFormValues) => {
+		setSuccessMessage("");
+
+		try {
+			const response = await mutation.mutateAsync({
+				firstName: values.firstName.trim(),
+				lastName: values.lastName.trim(),
+				email: values.email.trim(),
+				telephone: values.telephone.trim(),
+				positionOfInterest: values.positionOfInterest,
+				coverLetter: values.coverLetter.trim(),
 			});
-		};
+
+			setSuccessMessage(
+				response.message || "Your application has been submitted successfully.",
+			);
+
+			reset();
+		} catch {
+			// The shared API client handles request error notifications.
+		}
+	};
+
+	const inputClassName =
+		"w-full rounded-lg bg-white px-3 py-4 text-[#3A3A3A] outline-none transition duration-200 placeholder:text-[#777] focus:ring-2 focus:ring-[#2A8C56]/30";
+
+	const labelClassName = "mb-2 block text-sm font-medium text-[#3A3A3A]";
+
+	const errorClassName = "mt-1 text-xs text-red-600";
 
 	return (
-		<div className=" px-10 md:px-40 py-10 md:py-24 relative">
-			<div className="grid md:grid-cols-2 items-end gap-8">
-				<div className=" md:absolute md:right-5 md:-top-20 md:z-35">
-					<div className="w-full md:max-w-xl m-h-16 md:min-h-24">
-						<span className="hidden md:flex" />
-						<div className="flex flex-col">
-							<h1 className="text-[#1A1A1A] font-bold capitalize text-[32px] py-1">
-								Join our team
-							</h1>
-							<p className="text-[#3A3A3A] text-[16px]">
-								Use your skills, passion, and creativity to make a difference.
-								Whether in outreach, media, logistics, or teaching, your
-								contribution helps us reach more lives.
-							</p>
+		<section className="relative px-10 py-10 md:px-40 md:py-24">
+			{/* Heading: positioned above the form on desktop, inline on mobile */}
+			<div className="grid items-end gap-8 md:grid-cols-2">
+				<div className="md:absolute md:right-5 md:-top-20 md:z-[35]">
+					<Reveal distance={20}>
+						<div className="min-h-16 w-full md:min-h-24 md:max-w-xl">
+							<div className="flex flex-col">
+								<h1 className="py-1 text-[32px] font-bold capitalize tracking-tight text-[#1A1A1A] md:text-4xl">
+									{asText(fields.title, TEAM_DEFAULTS.title)}
+								</h1>
+
+								<p className="text-[16px] leading-relaxed text-[#3A3A3A]">
+									{asText(fields.description, TEAM_DEFAULTS.description)}
+								</p>
+							</div>
 						</div>
-					</div>
+					</Reveal>
 				</div>
 			</div>
-			<div className="pt-10">
-				<div className="grid md:grid-cols-4 rounded-4xl">
-					<div className="rounded-t-4xl md:rounded-t-none md:rounded-l-4xl h-full min-h-64 md:min-h-80">
-						{/* Actual image - covers the entire container */}
+
+			{/* Image and application form */}
+			<Reveal delay={120} distance={28} className="pt-10">
+				<div className="group grid overflow-hidden rounded-4xl shadow-sm md:grid-cols-4">
+					<div className="h-full min-h-64 overflow-hidden md:min-h-80">
 						<img
-							src={getInvolvedForm1}
-							alt={"Join Our Team"}
-							className=" w-full h-full object-cover rounded-t-4xl md:rounded-t-none md:rounded-l-4xl"
+							src={asText(fields.imageUrl, "/images/getInvolvedForm1.png")}
+							alt="Join our team"
+							className="h-full min-h-64 w-full rounded-t-4xl object-cover transition-transform duration-700 group-hover:scale-[1.025] md:min-h-80 md:rounded-l-4xl md:rounded-t-none"
+							loading="lazy"
 						/>
 					</div>
+
 					<form
 						onSubmit={handleSubmit(onSubmit)}
-						className=" md:col-span-3 border-2 border-[#D2D2D2] rounded-b-4xl md:rounded-b-none md:rounded-r-4xl md:rounded-br-4xl bg-[#D4E8DD] p-8 md:p-12">
-						<h1 className="text-[#1A1A1A] font-bold text-[32px] py-1">
-							Submit your application
-						</h1>
-						<div className="grid gap-4 md:grid-cols-2">
+						className="rounded-b-4xl border-2 border-[#D2D2D2] bg-[#D4E8DD] p-8 md:col-span-3 md:rounded-b-none md:rounded-br-4xl md:rounded-r-4xl md:p-12">
+						<h2 className="py-1 text-[32px] font-bold text-[#1A1A1A]">
+							{asText(fields.formTitle, TEAM_DEFAULTS.formTitle)}
+						</h2>
+
+						{successMessage && (
+							<div
+								role="status"
+								className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+								{successMessage}
+							</div>
+						)}
+
+						<div className="mt-4 grid gap-4 md:grid-cols-2">
+							{/* Left column */}
 							<div className="space-y-4">
 								<div>
-									<Controller
-										name="firstName"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="team-first-name">
+										First Name
+									</label>
+									<input
+										id="team-first-name"
+										autoComplete="given-name"
+										placeholder="Your First name"
+										className={inputClassName}
+										{...register("firstName", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your First name"
-												name={name}
-												label="First Name"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.firstName && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.firstName.message}
-										</p>
+										<p className={errorClassName}>{errors.firstName.message}</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="lastName"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="team-last-name">
+										Last Name
+									</label>
+									<input
+										id="team-last-name"
+										autoComplete="family-name"
+										placeholder="Your Last name"
+										className={inputClassName}
+										{...register("lastName", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your Last name"
-												name={name}
-												label="Last Name"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.lastName && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.lastName.message}
-										</p>
+										<p className={errorClassName}>{errors.lastName.message}</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="telephone"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="team-telephone">
+										Phone Number
+									</label>
+									<input
+										id="team-telephone"
+										type="tel"
+										autoComplete="tel"
+										placeholder="Your Mobile number"
+										className={inputClassName}
+										{...register("telephone", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your Mobile number"
-												name={name}
-												label="Phone Number"
-												type="tel"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+											validate: value =>
+												/^(?:\+?234|0)[0-9]{10}$/.test(
+													value.replace(/[\s()-]/g, ""),
+												) || "Enter a valid Nigerian phone number",
+										})}
 									/>
 									{errors.telephone && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.telephone.message}
-										</p>
+										<p className={errorClassName}>{errors.telephone.message}</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="email"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="team-email">
+										Email Address
+									</label>
+									<input
+										id="team-email"
+										type="email"
+										autoComplete="email"
+										placeholder="Your email"
+										className={inputClassName}
+										{...register("email", {
 											required: "This field is required",
 											pattern: {
 												value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 												message: "Invalid email format",
 											},
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Your email"
-												name={name}
-												label="Email Address"
-												type="email"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.email && (
-										<p className="text-[#dc2626] text-xs">
-											{errors.email.message}
-										</p>
+										<p className={errorClassName}>{errors.email.message}</p>
 									)}
 								</div>
 							</div>
+
+							{/* Right column */}
 							<div className="space-y-4">
 								<div>
-									<Controller
-										name="positionOfInterest"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="team-position">
+										Position Of Interest
+									</label>
+									<select
+										id="team-position"
+										className={inputClassName}
+										{...register("positionOfInterest", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												value={value}
-												onChange={onChange}
-												placeholder="Select Position of interest"
-												name={name}
-												label="Position Of Interest"
-												type="select"
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2"
-												labelColor="#fff"
-												options={[
-													"Education & Taining",
-													"Sustainability and Environment",
-													"Media & Communications",
-													"Project & Field Operations",
-													"Technology & Innovation",
-												]?.map(it => {
-													return {
-														value: it,
-														label: it,
-													};
-												})}
-											/>
-										)}
-									/>
+										})}>
+										<option value="">Select Position of interest</option>
+										{POSITIONS.map(position => (
+											<option key={position} value={position}>
+												{position}
+											</option>
+										))}
+									</select>
 									{errors.positionOfInterest && (
-										<p className="text-[#dc2626] text-xs">
+										<p className={errorClassName}>
 											{errors.positionOfInterest.message}
 										</p>
 									)}
 								</div>
+
 								<div>
-									<Controller
-										name="coverLetter"
-										control={control}
-										rules={{
+									<label className={labelClassName} htmlFor="team-cover-letter">
+										Cover Letter
+									</label>
+									<textarea
+										id="team-cover-letter"
+										rows={7}
+										placeholder="Why would you like to join us..."
+										className={`${inputClassName} min-h-40 resize-y md:min-h-60`}
+										{...register("coverLetter", {
 											required: "This field is required",
-										}}
-										render={({ field: { value, onChange, name } }) => (
-											<TextInput
-												className="bg-white py-4 rounded-lg w-full text-[#3A3A3A] px-2 placeholder::text-[#3A3A3A] min-h-40 md:min-h-60"
-												value={value}
-												onChange={onChange}
-												placeholder="Why would you like to join us..."
-												name={name}
-												label="Cover Letter"
-												type="textarea"
-												labelColor="#fff"
-											/>
-										)}
+										})}
 									/>
 									{errors.coverLetter && (
-										<p className="text-[#dc2626] text-xs">
+										<p className={errorClassName}>
 											{errors.coverLetter.message}
 										</p>
 									)}
 								</div>
 							</div>
 						</div>
+
 						<div className="mt-6">
-							<PrimaryBtn
-								disabled={!!loading}
-								loading={!!loading}
-								width="w"
-								text="Send Application"
-								className="bg-[#2A8C56] py-3 text-white rounded-2xl min-h-12 px-10 hover:scale-105"
-							/>
+							<button
+								type="submit"
+								disabled={mutation.isPending}
+								className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#2A8C56] px-10 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#236F46] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+								{mutation.isPending ? "Submitting..." : "Send Application"}
+							</button>
 						</div>
 					</form>
 				</div>
-			</div>
-		</div>
+			</Reveal>
+		</section>
 	);
 };
 

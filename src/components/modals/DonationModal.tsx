@@ -1,28 +1,57 @@
-import { ArrowRight } from "lucide-react";
-import PrimaryBtn from "../button";
-import RightSideModal from "./rightsidemodal";
+import { ArrowRight, Heart, Sprout } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { GeneralDonation } from "../../screens/get-involved/components/Donate";
-import { programs } from "../../screens/programs/components/AllPrograms";
-import { nairaSignNeutral } from "../../data/useFetcher";
 
-interface DonationModalProps {
+import RightSideModal from "./rightsidemodal";
+import { formatCurrency } from "../../screens/home/data/homeContent";
+import { Button } from "../ui";
+import {
+	GeneralDonation,
+	type ProgramDonation,
+} from "../../screens/get-involved/components/Donate";
+import { fallbackPrograms } from "../../screens/programs/components/AllPrograms";
+
+export interface DonationModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	title?: string;
 	type?: "right" | "center";
-	isSpecific?: boolean | any;
+	isSpecific?: ProgramDonation | null;
 }
 
 const DonationModal = ({
 	isOpen,
 	onClose,
-	title,
+	title = "How Would You Like To Donate",
 	type = "center",
+	isSpecific,
 }: DonationModalProps) => {
-	const navigate = useNavigate(),
-		[isGeneralDonation, setIsGeneralDonation] = useState(false);
+	const navigate = useNavigate();
+	const [isGeneralDonation, setIsGeneralDonation] = useState(false);
+
+	const handleGeneralDonation = () => {
+		onClose();
+		setIsGeneralDonation(true);
+	};
+
+	const handleViewPrograms = () => {
+		onClose();
+		navigate("/programs");
+	};
+
+	// A selected program should go straight to its donation form.
+	if (isSpecific) {
+		return (
+			<GeneralDonationModal
+				isOpen={isOpen}
+				onClose={onClose}
+				isSpecific={isSpecific}
+				title="Donate to This Program"
+				type={type}
+			/>
+		);
+	}
+
 	return (
 		<>
 			<RightSideModal
@@ -30,72 +59,97 @@ const DonationModal = ({
 				onClose={onClose}
 				type={type}
 				width="max-w-5xl"
-				height=" max-h-[500px] md:max-h-[650px]"
+				height="max-h-[500px] md:max-h-[650px]"
 				title={title}>
-				<>
-					<p className="text-[#3A3A3A] text-[14px] text-center max-w-lg mx-auto">
+				<div className="mx-auto max-w-2xl px-2 text-center">
+					<p className="text-sm leading-7 text-[#3A3A3A]">
 						Choose the option that best matches how you want to support our
-						mission
+						mission.
 					</p>
-					<div className="p-10">
-						<div className="grid md:grid-cols-2 gap-6">
-							<div className="rounded-xl p-4 bg-[#57887C]">
-								<div className="flex flex-col text-center">
-									<h1 className="text-[#ffffff] font-bold capitalize text-[18px] md:text-[26px] py-1">
-										Give to Our General Fund
-									</h1>
-									<p className="text-[#ffffff] text-[12px] max-w-[80%] mx-auto">
-										Help us respond quickly to urgent needs across all
-										communities we support.
-									</p>
-								</div>
-								<div className="bg-[#FAF8B3] p-2 rounded-xl my-4">
-									<p className="text-[#3A3A3A] text-[12px] text-center">
+				</div>
+
+				<div className="p-3 sm:p-6 md:p-8">
+					<div className="grid gap-5 md:grid-cols-2 md:gap-6">
+						<div className="group flex flex-col overflow-hidden rounded-2xl bg-[#57887C] p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-7">
+							<div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-white/15 text-white">
+								<Heart size={26} />
+							</div>
+
+							<div className="flex flex-1 flex-col text-center">
+								<h2 className="text-xl font-bold capitalize leading-snug text-white sm:text-2xl">
+									Give to Our General Fund
+								</h2>
+
+								<p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/90">
+									Help us respond quickly to urgent needs across all communities
+									we support.
+								</p>
+
+								<div className="my-6 flex flex-1 items-center justify-center rounded-xl bg-[#FAF8B3] p-4">
+									<p className="text-sm leading-6 text-[#3A3A3A]">
 										Your donation will be used wherever help is needed most.
 									</p>
 								</div>
-								<PrimaryBtn
-									text="Donate Now"
-									className=" bg-white font-bold text-[#2A8C56] py-3 rounded-xl hover:scale-95 transition duration-500 my-4"
-									icon={ArrowRight}
-									iconPosition="right"
-									onClick={() => {
-										setIsGeneralDonation(true);
-										onClose();
+
+								<Button
+									type="button"
+									size="lg"
+									fullWidth
+									rightIcon={<ArrowRight size={18} />}
+									className="rounded-xl bg-white font-bold text-[#2A8C56] transition duration-300 hover:scale-[0.98] hover:bg-[#F7FAF8]"
+									style={{
+										background: "#FFFFFF",
+										color: "#2A8C56",
+										boxShadow: "none",
 									}}
-								/>
+									onClick={handleGeneralDonation}>
+									Donate Now
+								</Button>
 							</div>
-							<div className="rounded-xl p-4 bg-[#00AB00]">
-								<div className="flex flex-col text-center">
-									<h1 className="text-[#ffffff] font-bold capitalize text-[18px] md:text-[26px] py-1">
-										Support a Specific Project
-									</h1>
-									<p className="text-[#ffffff] text-[12px] max-w-[80%] mx-auto">
-										Choose any of our ongoing programs and make an impact where
-										it matters most.
-									</p>
-								</div>
-								<div className="bg-[#FAF8B3] p-2 rounded-xl my-4">
-									<p className="text-[#3A3A3A] text-[12px] text-center">
+						</div>
+
+						<div className="group flex flex-col overflow-hidden rounded-2xl bg-[#00AB00] p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-7">
+							<div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-white/15 text-white">
+								<Sprout size={27} />
+							</div>
+
+							<div className="flex flex-1 flex-col text-center">
+								<h2 className="text-xl font-bold capitalize leading-snug text-white sm:text-2xl">
+									Support a Specific Project
+								</h2>
+
+								<p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/90">
+									Choose any of our ongoing programs and make an impact where it
+									matters most.
+								</p>
+
+								<div className="my-6 flex flex-1 items-center justify-center rounded-xl bg-[#FAF8B3] p-4">
+									<p className="text-sm leading-6 text-[#3A3A3A]">
 										Perfect if you want your donation to go toward a particular
 										cause.
 									</p>
 								</div>
-								<PrimaryBtn
-									text="View Programs"
-									className=" bg-white font-bold text-[#2A8C56] py-3 rounded-xl hover:scale-95 transition duration-500 my-4"
-									icon={ArrowRight}
-									iconPosition="right"
-									onClick={() => {
-										navigate("/programs");
-										onClose();
+
+								<Button
+									type="button"
+									size="lg"
+									fullWidth
+									rightIcon={<ArrowRight size={18} />}
+									className="rounded-xl bg-white font-bold text-[#2A8C56] transition duration-300 hover:scale-[0.98] hover:bg-[#F7FAF8]"
+									style={{
+										background: "#FFFFFF",
+										color: "#2A8C56",
+										boxShadow: "none",
 									}}
-								/>
+									onClick={handleViewPrograms}>
+									View Programs
+								</Button>
 							</div>
 						</div>
 					</div>
-				</>
+				</div>
 			</RightSideModal>
+
 			<GeneralDonationModal
 				isOpen={isGeneralDonation}
 				onClose={() => setIsGeneralDonation(false)}
@@ -113,87 +167,111 @@ export const GeneralDonationModal = ({
 	type = "center",
 	isSpecific,
 }: DonationModalProps) => {
-	console.log({ isSpecific });
+	const projectImage =
+		isSpecific?.thumbnailFile?.secure_url ||
+		fallbackPrograms?.[0]?.thumbnailFile?.secure_url;
+
+	const projectTitle = isSpecific?.title || fallbackPrograms?.[0]?.title;
+
+	const target = Number(isSpecific?.target || 0);
+
+	const progress = Math.min(
+		100,
+		Math.max(0, Number(isSpecific?.progress || 0)),
+	);
 
 	return (
-		<>
-			<RightSideModal
-				isOpen={isOpen}
-				onClose={onClose}
-				type={type}
-				width="max-w-5xl"
-				disableExternalClose
-				height=" max-h-[500px] md:max-h-[650px]"
-				title={title}>
-				<>
-					<p className="text-[#3A3A3A] text-[14px] text-center max-w-lg mx-auto">
-						{isSpecific
-							? `Every contribution helps move this project closer to completion.`
-							: `Your contribution helps us support communities wherever the need is
-						greatest.`}
-					</p>
-					{isSpecific && (
-						<>
-							<div className="grid md:grid-cols-2 items-center pt-6 relative">
-								{/* Image Column - Full height with background layer behind */}
-								<div className="relative rounded-2xl h-full min-h-52">
-									{/* Green background layer (behind the image) */}
-									<div className="absolute inset-0 bg-[#2A8C56] z-0 w-full h-[110%] rounded-xl left-3 -top-2 md:-top-3" />
+		<RightSideModal
+			isOpen={isOpen}
+			onClose={onClose}
+			type={type}
+			width="max-w-5xl"
+			disableExternalClose
+			height="max-h-[500px] md:max-h-[650px]"
+			title={title}>
+			<div className="mx-auto max-w-2xl px-2 text-center">
+				<p className="text-sm leading-7 text-[#3A3A3A]">
+					{isSpecific
+						? "Every contribution helps move this project closer to completion."
+						: "Your contribution helps us support communities wherever the need is greatest."}
+				</p>
+			</div>
 
-									{/* Actual image - covers the entire container */}
-									<img
-										src={
-											isSpecific?.thumbnailFile?.secure_url ||
-											programs?.[0]?.thumbnailFile?.secure_url
-										}
-										alt={isSpecific?.title || programs?.[0]?.title}
-										className="absolute inset-0 w-full h-full object-fit z-10 rounded-2xl"
+			{isSpecific && (
+				<div className="relative grid items-stretch gap-6 pt-7 md:grid-cols-2">
+					<div className="relative min-h-56 sm:min-h-72 md:min-h-80">
+						<div className="absolute inset-0 left-2 top-2 rounded-2xl bg-[#2A8C56] md:left-3 md:top-3" />
+
+						{projectImage ? (
+							<img
+								src={projectImage}
+								alt={projectTitle || "Project"}
+								className="absolute inset-0 z-10 h-full w-full rounded-2xl object-cover"
+								loading="lazy"
+							/>
+						) : (
+							<div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-[#D4E8DD] p-4 text-center text-sm text-[#3A3A3A]">
+								Project image unavailable
+							</div>
+						)}
+					</div>
+
+					<div className="flex flex-col justify-center rounded-2xl bg-[#D4E8DD] p-5 sm:p-6">
+						<p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-[#2A8C56]">
+							Featured project
+						</p>
+
+						<h3 className="text-xl font-bold capitalize leading-snug text-[#1A1A1A] sm:text-2xl">
+							{projectTitle}
+						</h3>
+
+						{isSpecific.description && (
+							<p className="pt-4 text-sm leading-7 text-[#3A3A3A]">
+								{isSpecific.description}
+							</p>
+						)}
+
+						<div className="mt-6 space-y-5">
+							<div className="flex flex-wrap items-center justify-between gap-3">
+								<span className="text-sm font-semibold text-[#1A1A1A]">
+									Fundraising target
+								</span>
+
+								<span className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#1C5D39]">
+									{formatCurrency(target)}
+								</span>
+							</div>
+
+							<div>
+								<div className="mb-3 flex items-center justify-between gap-3 text-sm">
+									<span className="font-medium text-[#3A3A3A]">
+										Project progress
+									</span>
+
+									<span className="font-bold text-[#1C5D39]">{progress}%</span>
+								</div>
+
+								<div
+									className="h-2.5 w-full overflow-hidden rounded-full bg-white"
+									role="progressbar"
+									aria-label="Project fundraising progress"
+									aria-valuenow={progress}
+									aria-valuemin={0}
+									aria-valuemax={100}>
+									<div
+										className="h-full rounded-full bg-[#1C5D39] transition-[width] duration-700 ease-out"
+										style={{ width: `${progress}%` }}
 									/>
 								</div>
-								<div className="bg-[#D4E8DD]">
-									<div className="p-3">
-										<h3 className="text-[#1a1a1a] font-bold capitalize text-[20px] py-1">
-											{isSpecific?.title}
-										</h3>
-										<p className="text-[#3A3A3A] text-[14px] pt-3 leading-6">
-											{isSpecific?.description}
-										</p>
-
-										<>
-											<div className="flex items-center gap-3 pb-3">
-												{<span>Target:</span>}
-												<div className="bg-[#D8EAE0] p-2 rounded-lg w-auto">
-													<span>
-														{nairaSignNeutral}
-														{(isSpecific?.target || 0).toLocaleString()}
-													</span>
-												</div>
-												<div className="block w-full">
-													<div className="flex items-center gap-2 w-full">
-														<div className="relative h-2 w-full rounded-full bg-[#E0D5E9]">
-															<div
-																className="h-full rounded-full bg-[#1C5D39]"
-																style={{
-																	width: `${isSpecific?.progress || 0}%`,
-																}}></div>
-														</div>
-														<span>
-															{(isSpecific?.progress || 0).toLocaleString()}%
-														</span>
-													</div>
-												</div>
-											</div>
-										</>
-									</div>
-								</div>
 							</div>
-						</>
-					)}
-					<div className="p-10">
-						<GeneralDonation isSpecific={isSpecific} onClose={onClose} />
+						</div>
 					</div>
-				</>
-			</RightSideModal>
-		</>
+				</div>
+			)}
+
+			<div className="p-3 sm:p-6 md:p-8">
+				<GeneralDonation isSpecific={isSpecific} onClose={onClose} />
+			</div>
+		</RightSideModal>
 	);
 };
