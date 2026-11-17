@@ -13,6 +13,7 @@ import Reveal from "../../../components/shared/Reveal";
 import { Button, Input, Textarea } from "../../../components/ui";
 import { useContactSection } from "../data/contactContent";
 import { useContactSupportMutation } from "../../../data/hooks/useContactSupport";
+import SafeHtml from "../../../components/SafeHtml";
 
 interface ContactFormValues {
 	fullname: string;
@@ -184,10 +185,12 @@ const ContactFormInformation = () => {
 						</h1>
 
 						<p className="mt-3 max-w-xl text-base leading-7 text-[#3A3A3A]">
-							{getText(
-								details.description,
-								CONTACT_DETAILS_DEFAULTS.description,
-							)}
+							<SafeHtml
+								html={getText(
+									details.description,
+									CONTACT_DETAILS_DEFAULTS.description,
+								)}
+							/>
 						</p>
 
 						<div className="mt-7 space-y-5">

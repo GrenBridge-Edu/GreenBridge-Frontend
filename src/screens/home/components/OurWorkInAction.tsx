@@ -5,6 +5,7 @@ import { useHomeProgramsQuery } from "../../../data/queries/homeContent.queries"
 
 import { asText, formatCurrency, useHomeSection } from "../data/homeContent";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	title: "Our work in action",
@@ -79,7 +80,9 @@ const OurWorkInAction = () => {
 
 						<Reveal delay={200}>
 							<p className="max-w-xl text-sm leading-7 text-[#59645D] sm:text-base">
-								{asText(fields.description, DEFAULTS.description)}
+								<SafeHtml
+									html={asText(fields.description, DEFAULTS.description)}
+								/>
 							</p>
 						</Reveal>
 					</div>

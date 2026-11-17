@@ -6,6 +6,7 @@ import {
 } from "../data/homeContent";
 import { useDonation } from "../../../hooks/useDonation";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	title: "Make a Difference Today",
@@ -43,7 +44,9 @@ const MakeDifference = ({ isHome = true }: { isHome?: boolean }) => {
 						</h3>
 
 						<p className="py-3 text-sm leading-6 text-[#5A5A5A]">
-							{asText(fields.description, DEFAULTS.description)}
+							<SafeHtml
+								html={asText(fields.description, DEFAULTS.description)}
+							/>
 						</p>
 
 						<button

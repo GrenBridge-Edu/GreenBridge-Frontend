@@ -9,6 +9,7 @@ import { useProgramsSection } from "../data/programsContent";
 import { Button } from "../../../components/ui";
 import DonationModal from "../../../components/modals/DonationModal";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	title: "Our Programs",
@@ -249,9 +250,13 @@ const AllPrograms = () => {
 
 					<Reveal distance={24} delay={100}>
 						<p className="text-[16px] leading-8 text-[#3A3A3A]">
-							{isProgram === "ongoing"
-								? asText(fields.description, DEFAULTS.description)
-								: "These completed programs are a testament to what we can achieve together. Each one tells a story of hope, progress, and the lasting change your support made possible."}
+							{isProgram === "ongoing" ? (
+								<SafeHtml
+									html={asText(fields.description, DEFAULTS.description)}
+								/>
+							) : (
+								"These completed programs are a testament to what we can achieve together. Each one tells a story of hope, progress, and the lasting change your support made possible."
+							)}
 						</p>
 					</Reveal>
 				</div>

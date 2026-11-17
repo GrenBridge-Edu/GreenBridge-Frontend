@@ -1,6 +1,7 @@
 import { asItems, asText, useHomeSection } from "../data/homeContent";
 import ImpactStatsGrid, { type ImpactItem } from "./ImpactStatsGrid";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	title: "Why Green Bridge Exists",
@@ -46,8 +47,10 @@ const OurImpact = () => {
 					</Reveal>
 
 					<Reveal delay={200}>
-						<p className="max-w-lg text-sm leading-7 text-[#5B665F] md:text-base">
-							{asText(fields.description, DEFAULTS.description)}
+						<p className="max-w-lg text-sm leading-7 text-[#5B665F] md:text-base pr-5">
+							<SafeHtml
+								html={asText(fields.description, DEFAULTS.description)}
+							/>
 						</p>
 					</Reveal>
 				</div>

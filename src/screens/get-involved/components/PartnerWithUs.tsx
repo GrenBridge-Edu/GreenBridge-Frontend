@@ -6,6 +6,7 @@ import { usePartnerWithUsMutation } from "../../../data/hooks/useContactSupport"
 import { asText } from "../../home/data/homeContent";
 import { useGetInvolvedSection } from "../data/getInvolvedContent";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 interface PartnerWithUsFormValues {
 	nameOfOrganisation: string;
@@ -109,7 +110,12 @@ const PartnerWithUs = () => {
 
 						<Reveal delay={100}>
 							<p className="text-[16px] leading-relaxed text-[#3A3A3A]">
-								{asText(fields.description, PARTNER_DEFAULTS.description)}
+								<SafeHtml
+									html={asText(
+										fields.description,
+										PARTNER_DEFAULTS.description,
+									)}
+								/>
 							</p>
 						</Reveal>
 					</div>

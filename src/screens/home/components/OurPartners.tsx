@@ -20,6 +20,7 @@ import {
 } from "../data/homeContent";
 
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 interface PartnerItem {
 	name?: string;
@@ -139,10 +140,12 @@ const OurPartners = () => {
 
 						<Reveal distance={20} delay={140}>
 							<p className="mt-3 max-w-2xl text-sm leading-7 text-[#4C5B51] sm:text-base">
-								{asText(
-									fields.partnersDescription,
-									DEFAULTS.partnersDescription,
-								)}
+								<SafeHtml
+									html={asText(
+										fields.partnersDescription,
+										DEFAULTS.partnersDescription,
+									)}
+								/>
 							</p>
 						</Reveal>
 					</div>
@@ -233,10 +236,12 @@ const OurPartners = () => {
 
 							<Reveal distance={20} delay={140}>
 								<p className="mt-3 max-w-2xl text-sm leading-7 text-[#4C5B51] sm:text-base">
-									{asText(
-										fields.getInvolvedDescription,
-										DEFAULTS.getInvolvedDescription,
-									)}
+									<SafeHtml
+										html={asText(
+											fields.getInvolvedDescription,
+											DEFAULTS.getInvolvedDescription,
+										)}
+									/>
 								</p>
 							</Reveal>
 						</div>

@@ -10,6 +10,7 @@ import { asText } from "../../home/data/homeContent";
 import { useGetInvolvedSection } from "../data/getInvolvedContent";
 import Reveal from "../../../components/shared/Reveal";
 import { Button, Input } from "../../../components/ui";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DONATION_AMOUNTS = [50000, 100000, 250000, 500000, 1000000, 2000000];
 
@@ -314,7 +315,10 @@ const Donate = () => {
 
 						<Reveal delay={100}>
 							<p className="text-[16px] leading-relaxed text-[#3A3A3A]">
-								{asText(fields.description, DONATE_DEFAULTS.description)}
+								<SafeHtml
+									html=
+									{asText(fields.description, DONATE_DEFAULTS.description)}
+								/>
 							</p>
 						</Reveal>
 					</div>

@@ -11,6 +11,7 @@ import { asText, useHomeSection } from "../data/homeContent";
 
 import Reveal from "../../../components/shared/Reveal";
 import ResourceComponent from "./ResourceComponent";
+import SafeHtml from "../../../components/SafeHtml";
 
 const fallbackImages = [
 	"/images/homeResources1.png",
@@ -145,7 +146,9 @@ const OurResources = () => {
 
 						<Reveal distance={20} delay={140}>
 							<p className="mt-3 max-w-2xl text-sm leading-7 text-[#5A5A5A] sm:text-base">
-								{asText(fields.description, DEFAULTS.description)}
+								<SafeHtml
+									html={asText(fields.description, DEFAULTS.description)}
+								/>
 							</p>
 						</Reveal>
 					</div>

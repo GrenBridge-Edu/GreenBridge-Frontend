@@ -5,6 +5,7 @@ import {
 } from "../../home/data/homeContent";
 import Reveal from "../../../components/shared/Reveal";
 import { useAboutSection } from "../data/aboutContent";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	eyebrow: "about us",
@@ -54,7 +55,9 @@ const WhoWeAre = () => {
 
 					<Reveal distance={24} delay={160}>
 						<p className="text-base leading-8 text-[#3A3A3A]">
-							{asText(fields.description, DEFAULTS.description)}
+							<SafeHtml
+								html={asText(fields.description, DEFAULTS.description)}
+							/>
 						</p>
 					</Reveal>
 

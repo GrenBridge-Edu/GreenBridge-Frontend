@@ -9,6 +9,7 @@ import {
 
 import Reveal from "../../../components/shared/Reveal";
 import { useAboutSection } from "../data/aboutContent";
+import SafeHtml from "../../../components/SafeHtml";
 
 interface CoreValue {
 	title?: string;
@@ -214,7 +215,9 @@ const OurCoreValues = () => {
 
 						<Reveal distance={24} delay={160}>
 							<p className="mt-3 text-base leading-8 text-[#3A3A3A]">
-								{asText(fields.description, DEFAULTS.description)}
+								<SafeHtml
+									html={asText(fields.description, DEFAULTS.description)}
+								/>
 							</p>
 						</Reveal>
 					</div>
@@ -321,7 +324,12 @@ const OurCoreValues = () => {
 
 						<Reveal distance={24} delay={160}>
 							<p className="mt-4 text-base leading-8 text-[#3A3A3A]">
-								{asText(teamFields.description, TEAM_DEFAULTS.description)}
+								<SafeHtml
+									html={asText(
+										teamFields.description,
+										TEAM_DEFAULTS.description,
+									)}
+								/>
 							</p>
 						</Reveal>
 

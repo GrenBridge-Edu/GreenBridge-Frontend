@@ -11,6 +11,7 @@ import { useResourcesSection } from "../data/resourcesContent";
 import { fallbackResources as resources } from "../../home/components/Resources";
 import ResourceComponent from "../../home/components/ResourceComponent";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	title: "Resources",
@@ -137,7 +138,9 @@ const AllResources = () => {
 					className="md:absolute md:right-5 md:-top-20 md:z-30 md:w-full md:max-w-lg">
 					<div className="min-h-48 w-full rounded-2xl border border-[#236B45]/5 bg-[#D8EAE0] p-5 shadow-sm md:p-8">
 						<p className="pb-5 text-[15px] leading-relaxed text-[#3A3A3A]">
-							{asText(fields.description, DEFAULTS.description)}
+							<SafeHtml
+								html={asText(fields.description, DEFAULTS.description)}
+							/>
 						</p>
 
 						<div className="relative">

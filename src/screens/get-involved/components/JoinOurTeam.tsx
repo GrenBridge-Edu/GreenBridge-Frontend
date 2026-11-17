@@ -5,6 +5,7 @@ import { asText } from "../../home/data/homeContent";
 import { useGetInvolvedSection } from "../data/getInvolvedContent";
 import { useJoinOurTeamMutation } from "../../../data/hooks/useContactSupport";
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 interface JoinOurTeamFormValues {
 	firstName: string;
@@ -96,7 +97,10 @@ const JoinOurTeam = () => {
 								</h1>
 
 								<p className="text-[16px] leading-relaxed text-[#3A3A3A]">
-									{asText(fields.description, TEAM_DEFAULTS.description)}
+									<SafeHtml
+										html=
+										{asText(fields.description, TEAM_DEFAULTS.description)}
+									/>
 								</p>
 							</div>
 						</div>

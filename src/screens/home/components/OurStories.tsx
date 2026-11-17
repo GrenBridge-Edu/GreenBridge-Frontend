@@ -15,6 +15,7 @@ import {
 } from "../data/homeContent";
 
 import Reveal from "../../../components/shared/Reveal";
+import SafeHtml from "../../../components/SafeHtml";
 
 interface StoryItem {
 	title?: string;
@@ -132,7 +133,9 @@ const OurStories = () => {
 
 						<Reveal delay={200}>
 							<p className="max-w-xl text-sm leading-7 text-[#46554B] sm:text-base">
-								{asText(fields.description, DEFAULTS.description)}
+								<SafeHtml
+									html={asText(fields.description, DEFAULTS.description)}
+								/>
 							</p>
 						</Reveal>
 					</div>

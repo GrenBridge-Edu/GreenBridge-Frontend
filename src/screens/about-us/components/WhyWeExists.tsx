@@ -6,6 +6,7 @@ import ImpactStatsGrid from "../../home/components/ImpactStatsGrid";
 import Reveal from "../../../components/shared/Reveal";
 
 import { useAboutSection } from "../data/aboutContent";
+import SafeHtml from "../../../components/SafeHtml";
 
 const DEFAULTS = {
 	eyebrow: "our impact",
@@ -66,7 +67,9 @@ const WhyWeExists = () => {
 
 						<Reveal distance={24} delay={0.16}>
 							<p className="mt-3 max-w-xl text-base leading-8 text-[#3A3A3A]">
-								{asText(fields.description, DEFAULTS.description)}
+								<SafeHtml
+									html={asText(fields.description, DEFAULTS.description)}
+								/>
 							</p>
 						</Reveal>
 					</div>

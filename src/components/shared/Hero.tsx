@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { ArrowRight, Search } from "lucide-react";
+import SafeHtml from "../SafeHtml";
 
 export interface HeroVisibility {
 	global?: boolean;
@@ -38,21 +39,13 @@ type HeroProps = {
 const visibilityClasses = (visibility?: HeroVisibility): string => {
 	if (!visibility) return "";
 
-	const globalVisible = visibility.global !== false;
-	const mobileVisible = visibility.mobile ?? globalVisible;
-	const tabletVisible = visibility.tablet ?? globalVisible;
-	const desktopVisible = visibility.desktop ?? globalVisible;
-
-	if (!globalVisible) {
-		return [
-			"hidden",
-			mobileVisible ? "max-md:!block" : "",
-			tabletVisible ? "md:max-lg:!block" : "",
-			desktopVisible ? "lg:!block" : "",
-		]
-			.filter(Boolean)
-			.join(" ");
+	if (visibility.global === false) {
+		return "hidden";
 	}
+
+	const mobileVisible = visibility.mobile ?? true;
+	const tabletVisible = visibility.tablet ?? true;
+	const desktopVisible = visibility.desktop ?? true;
 
 	return [
 		!mobileVisible ? "max-md:!hidden" : "",
@@ -272,7 +265,8 @@ const Hero = ({
 				<p
 					className={`mt-6 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg md:text-xl ${visibilityClasses(subtextVisibility)}`}
 					style={staggeredContentStyle(180)}>
-					{subtext}
+					{/* {subtext} */}
+					<SafeHtml html={subtext} />
 				</p>
 
 				{isSearch && (
